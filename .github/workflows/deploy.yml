@@ -3,7 +3,7 @@ name: CI/CD Pipeline for Spring Boot with Gradle
 on:
   push:
     branches:
-      - main  # 또는 배포하려는 브랜치
+      - main # 또는 배포하려는 브랜치
 
 jobs:
   build:
@@ -29,7 +29,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: spring-boot-app
-          path: build/libs/*.jar  # Gradle의 빌드 아웃풋 경로
+          path: build/libs/*.jar # Gradle의 빌드 아웃풋 경로
 
   deploy:
     runs-on: ubuntu-latest
@@ -45,7 +45,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
-          key: ${{ secrets.EC2_KEY }}  # SSH 접근을 위한 개인 키
+          key: ${{ secrets.EC2_KEY }} # SSH 접근을 위한 개인 키
           script: |
             sudo pkill -f 'java -jar' || true  # 기존 Java 프로세스 종료
             sudo rm -rf /home/ec2-user/app/*  # 이전 빌드 파일 삭제

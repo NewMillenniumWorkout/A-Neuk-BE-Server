@@ -11,6 +11,6 @@ import java.util.List;
 public class TestController {
     @GetMapping
     public String test() {
-        return "Hello world";
+        return "SUCCECC?!?!?!?";
     }
 }

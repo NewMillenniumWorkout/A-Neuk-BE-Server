@@ -16,6 +16,6 @@ public class TestController {
 
     @GetMapping("/test")
     public List<String> test2() {
-        return List.of("SUCCECC?!?!?!?", "SUCCECC?!?!?!?", "SUCCECC?!?!?!?");
+        return List.of("SUCCECC?!?!?!?", "SUCCECC?!?!?!?", "WOW!!!!!?!?!?!?");
     }
 }

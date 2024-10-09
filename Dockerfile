@@ -16,5 +16,5 @@ RUN ./gradlew bootJar
 RUN mv build/libs/*.jar build/libs/app.jar
 
 # 5. 빌드 결과를 어플리케이션으로 설정
-EXPOSE 8088
+EXPOSE 7010
 ENTRYPOINT ["java", "-jar", "build/libs/app.jar"]

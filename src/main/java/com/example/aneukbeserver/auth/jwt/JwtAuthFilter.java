@@ -37,7 +37,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // request Header에서 AccessToken을 가져온다
-        String atc = request.getHeader("Authorization");
+        String atc = request.getHeader("Authorization").substring(7);
 
         // 토큰 검사 생략 (모두 허용 URL의 경우 토큰 검사 통과)
         if (!StringUtils.hasText(atc)) {
@@ -53,7 +53,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // AccessToken의 값이 있고, 유효한 경우에 진행
         if (jwtUtil.verifyToken(atc)) {
             // AccessToken 내부의 payload 에 있는 email로 user을 조회. 없다면 예외를 발생 -> 정상 케이스가 아님
-            Member findMember = memberRepository.findByEmail(jwtUtil.getUid(atc))
+            Member findMember = memberRepository.findByEmail(jwtUtil.getEmail(atc))
                     .orElseThrow(IllegalStateException::new);
 
             // SecurityContext에 등록할 User 객체를 만들어준다.

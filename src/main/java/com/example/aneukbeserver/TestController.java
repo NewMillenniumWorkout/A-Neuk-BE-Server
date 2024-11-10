@@ -45,7 +45,7 @@ public class TestController {
 
     @GetMapping("/token-test/{accessToken}")
     public String testAccessToken(@PathVariable String accessToken) {
-        return jwtUtil.getUid(accessToken);
+        return jwtUtil.getEmail(accessToken);
     }
 
 }

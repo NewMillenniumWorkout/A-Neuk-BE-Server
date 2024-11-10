@@ -30,7 +30,7 @@ public class Chat {
     private Member member;
 
     @Column
-    private boolean isCompleted;
+    private boolean isCompleted = false;
 
     @CreatedDate
     private LocalDateTime createdDate;

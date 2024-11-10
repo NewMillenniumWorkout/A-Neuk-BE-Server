@@ -1,38 +1,34 @@
-package com.example.aneukbeserver.domain.chat;
+package com.example.aneukbeserver.domain.diary;
 
-import com.example.aneukbeserver.domain.diary.Diary;
+import com.example.aneukbeserver.domain.chat.Chat;
+import com.example.aneukbeserver.domain.diaryParagraph.DiaryParagraph;
 import com.example.aneukbeserver.domain.member.Member;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
-public class Chat {
+public class Diary {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @OneToOne
-    @JoinColumn(name = "diary_id")
-    private Diary diary;
 
     @ManyToOne
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Column
-    private boolean isCompleted;
+    @OneToOne(mappedBy = "diary")
+    private Chat chat;
 
     @CreatedDate
     private LocalDateTime createdDate;
 
+    @OneToMany(mappedBy = "diary")
+    private List<DiaryParagraph> paragraphs;
 }

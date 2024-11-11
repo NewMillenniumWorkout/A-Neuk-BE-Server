@@ -12,4 +12,5 @@ import lombok.Setter;
 public class InitMessageDTO {
     private Long chatId;
     private String message;
+    private MessageType type;
 }

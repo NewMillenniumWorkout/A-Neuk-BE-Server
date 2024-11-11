@@ -3,6 +3,7 @@ package com.example.aneukbeserver.service;
 import com.example.aneukbeserver.domain.chat.Chat;
 import com.example.aneukbeserver.domain.chat.ChatRepository;
 import com.example.aneukbeserver.domain.chatMessages.InitMessageDTO;
+import com.example.aneukbeserver.domain.chatMessages.MessageType;
 import com.example.aneukbeserver.domain.member.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -56,7 +57,7 @@ public class ChatService {
         if (latestChatOpt.isPresent()) {
             Chat latestChat = latestChatOpt.get();
             if (latestChat.getCreatedDate().toLocalDate().isEqual(LocalDate.now())) {
-                return new InitMessageDTO(latestChat.getId(), "오늘의 채팅이 이미 존재합니다.");
+                return new InitMessageDTO(latestChat.getId(), "오늘의 채팅이 이미 존재합니다.", MessageType.SYSTEM);
             }
         }
 
@@ -67,6 +68,6 @@ public class ChatService {
         newChat.setCompleted(false); // 초기 값 설정
         chatRepository.save(newChat);
 
-        return new InitMessageDTO(newChat.getId(), randomGreeting());
+        return new InitMessageDTO(newChat.getId(), randomGreeting(), MessageType.ASSISTANT);
     }
 }

@@ -18,7 +18,8 @@ public class RefreshTokenService {
 
     @Transactional
     public void removeRefreshToken(String accessToken) {
-        RefreshToken token = refreshTokenRepository.findByAccessToken(accessToken).orElseThrow(IllegalArgumentException::new);
+        RefreshToken token = refreshTokenRepository.findByAccessToken(accessToken)
+                .orElseThrow(() -> new IllegalArgumentException("AccessToken이 존재하지 않습니다: " + accessToken));
         refreshTokenRepository.delete(token);
     }
 }

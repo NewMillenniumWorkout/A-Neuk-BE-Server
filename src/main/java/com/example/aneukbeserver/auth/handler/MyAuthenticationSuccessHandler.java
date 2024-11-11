@@ -4,6 +4,7 @@ import com.example.aneukbeserver.auth.dto.GeneratedToken;
 import com.example.aneukbeserver.auth.jwt.JwtUtil;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.domain.member.MemberRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -61,19 +62,26 @@ public class MyAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucce
         GeneratedToken token = jwtUtil.generateToken(email, role);
         log.info("jwt Token = {}", token.getAccessToken());
 
-        // accessToken을 쿼리 스트링에 담는 url
-        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:7010/login-success")
-                .queryParam("accessToken", token.getAccessToken())
-                .build()
-                .encode(StandardCharsets.UTF_8)
-                .toUriString();
+//        // accessToken을 쿼리 스트링에 담는 url
+//        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:7010/login-success")
+//                .queryParam("accessToken", token.getAccessToken())
+//                .build()
+//                .encode(StandardCharsets.UTF_8)
+//                .toUriString();
+//
+//        log.info("redirect 준비");
 
-        log.info("redirect 준비");
+//        // 로그인 확인 페이지로 리다이렉트
+//        getRedirectStrategy().sendRedirect(request, response, targetUrl);
 
-        // 로그인 확인 페이지로 리다이렉트
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        // JSON으로 응답 설정
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(HttpServletResponse.SC_OK);
 
-
+        // 응답 데이터 생성
+        ObjectMapper objectMapper = new ObjectMapper();
+        response.getWriter().write(objectMapper.writeValueAsString(new LoginSuccessResponse("success", token.getAccessToken())));
     }
 
 }

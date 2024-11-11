@@ -1,16 +1,15 @@
 package com.example.aneukbeserver;
 
+import com.example.aneukbeserver.auth.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -19,8 +18,8 @@ import java.util.List;
 @RequestMapping("/")
 @RestController
 public class TestController {
-
-
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Operation(summary = "test api", description = "testtesttest")
     @ApiResponses(value = {
@@ -43,4 +42,10 @@ public class TestController {
         System.out.println(externalContent);
         return List.of("sprint api content", externalContent);
     }
+
+    @GetMapping("/token-test/{accessToken}")
+    public String testAccessToken(@PathVariable String accessToken) {
+        return jwtUtil.getEmail(accessToken);
+    }
+
 }

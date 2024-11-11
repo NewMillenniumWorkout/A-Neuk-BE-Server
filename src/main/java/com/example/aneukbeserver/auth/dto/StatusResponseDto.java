@@ -19,7 +19,7 @@ public class StatusResponseDto {
         return new StatusResponseDto(status);
     }
 
-    public static StatusResponseDto addStatus(Integer status, String data) {
+    public static StatusResponseDto addStatus(Integer status, Object data) {
         return new StatusResponseDto(status, data);
     }
 

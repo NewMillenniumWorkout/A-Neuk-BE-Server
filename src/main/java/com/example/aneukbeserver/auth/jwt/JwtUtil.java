@@ -59,6 +59,7 @@ public class JwtUtil {
 
     public String generateAccessToken(String email, String role) {
         long tokenPeriod = 1000L * 60L * 30L; // 30분
+//        long tokenPeriod = 1000L * 2L; // 2초
 
         Claims claims = Jwts.claims().setSubject(email);
         claims.put("role", role);
@@ -75,8 +76,9 @@ public class JwtUtil {
 
     public boolean verifyToken(String token) {
         try {
-            Jws<Claims> claims = Jwts.parser()
-                    .setSigningKey(secretKey) // 비밀키를 설정하여 파싱
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)// 비밀키를 설정하여 파싱
+                    .build()
                     .parseClaimsJws(token); // 주어진 토큰을 파싱하여 Claims 객체 생성
 
             return claims.getBody()
@@ -87,8 +89,8 @@ public class JwtUtil {
         }
     }
 
-    // 토큰에서 Email을 추춘
-    public String getUid(String token) {
+    // 토큰에서 Email을 추출
+    public String getEmail(String token) {
         return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
     }
 

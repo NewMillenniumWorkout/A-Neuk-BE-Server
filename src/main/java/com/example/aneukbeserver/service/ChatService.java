@@ -7,6 +7,8 @@ import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessagesRepository;
 import com.example.aneukbeserver.domain.chatMessages.InitMessageDTO;
 import com.example.aneukbeserver.domain.chatMessages.MessageType;
+import com.example.aneukbeserver.domain.diary.Diary;
+import com.example.aneukbeserver.domain.diary.DiaryRepository;
 import com.example.aneukbeserver.domain.member.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,9 @@ public class ChatService {
 
     @Autowired
     private ChatMessagesRepository chatMessagesRepository;
+
+    @Autowired
+    private DiaryRepository diaryRepository;
 
 
     private static final List<String> greetings = Arrays.asList(
@@ -67,19 +72,28 @@ public class ChatService {
         }
 
         // 최근 채팅이 없거나 가장 최근의 채팅이 오늘이 아닌 경우 새로운 채팅 생성
+        Diary diary = new Diary();
+        diary.setMember(member);
+        diaryRepository.save(diary);
+
+
         Chat newChat = new Chat();
         newChat.setMember(member);
         newChat.setCreatedDate(LocalDateTime.now());
         newChat.setCompleted(false); // 초기 값 설정
+        newChat.setDiary(diary);
         chatRepository.save(newChat);
+
+        diary.setChat(newChat);
+        diaryRepository.save(diary);
 
         String greetingMessage = randomGreeting();
         ChatMessages chatMessages = new ChatMessages();
         chatMessages.setChat(newChat);
         chatMessages.setContent(greetingMessage);
         chatMessages.setType(MessageType.ASSISTANT);
-
         chatMessagesRepository.save(chatMessages);
+
 
         return new InitMessageDTO(newChat.getId(), greetingMessage, MessageType.ASSISTANT);
     }

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -16,13 +17,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Chat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "diary_id")
+    @JoinColumn(name = "diary_id", nullable = false, unique = true)
     private Diary diary;
 
     @ManyToOne
@@ -33,6 +35,7 @@ public class Chat {
     private boolean isCompleted = false;
 
     @CreatedDate
+    @Column(updatable = false)
     private LocalDateTime createdDate;
 
 }

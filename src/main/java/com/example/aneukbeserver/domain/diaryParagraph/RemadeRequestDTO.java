@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @Data
 public class RemadeRequestDTO {
-    private Long paragraph_id;
+    private Long diary_id;
     private Integer order_index;
     private String original_content;
     private List<String> emotions;

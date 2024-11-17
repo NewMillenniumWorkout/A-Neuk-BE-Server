@@ -22,4 +22,8 @@ public class DiaryService {
         diary.setChat(chat);
         diaryRepository.save(diary);
     }
+
+    public Long getDiaryIdByChatId(Chat chat) {
+        return diaryRepository.findByChat(chat).getId();
+    }
 }

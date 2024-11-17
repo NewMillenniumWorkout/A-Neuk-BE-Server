@@ -3,14 +3,10 @@ package com.example.aneukbeserver.controller;
 import com.example.aneukbeserver.auth.dto.StatusResponseDto;
 import com.example.aneukbeserver.auth.jwt.JwtUtil;
 import com.example.aneukbeserver.domain.chat.Chat;
-import com.example.aneukbeserver.domain.chatMessages.ChatAiResponseDTO;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessageDTO;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
-import com.example.aneukbeserver.domain.chatMessages.InitMessageDTO;
 import com.example.aneukbeserver.domain.diary.DiaryAiResponseDTO;
-import com.example.aneukbeserver.domain.diaryParagraph.DiaryParagraph;
-import com.example.aneukbeserver.domain.diaryParagraph.RemadeParagraphDTO;
-import com.example.aneukbeserver.domain.diaryParagraph.RemadeRequestDTO;
+import com.example.aneukbeserver.domain.diaryParagraph.*;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -110,7 +106,11 @@ public class DiaryController {
             diaryService.saveDiary(chat.get(), member.get());
             diaryParagraphService.saveParagraphs(chat.get(), aiResponse.getBody());
 
-            return ResponseEntity.ok(addStatus(200, aiResponse.getBody()));
+            SelectParagraphDTO selectParagraphDTO = new SelectParagraphDTO();
+            selectParagraphDTO.setDiary_id(diaryService.getDiaryIdByChatId(chat.get()));
+            selectParagraphDTO.setContent_list(aiResponse.getBody().getContent_list());
+
+            return ResponseEntity.ok(addStatus(200, selectParagraphDTO));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(addStatus(500, "Error communicating with AI server : " + e.getMessage()));
         }
@@ -130,7 +130,7 @@ public class DiaryController {
         String userEmail = jwtUtil.getEmail(accessToken.substring(7));
         Optional<Member> member = memberService.findByEmail(userEmail);
         log.info(String.valueOf(request));
-        Optional<DiaryParagraph> diaryParagraph = diaryParagraphService.findByParagraphId(request.getParagraph_id());
+        Optional<DiaryParagraph> diaryParagraph = diaryParagraphService.findByParagraphId(request.getDiary_id(), request.getOrder_index());
 
         if (member.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));

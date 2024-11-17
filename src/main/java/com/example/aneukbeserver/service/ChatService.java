@@ -2,6 +2,9 @@ package com.example.aneukbeserver.service;
 
 import com.example.aneukbeserver.domain.chat.Chat;
 import com.example.aneukbeserver.domain.chat.ChatRepository;
+import com.example.aneukbeserver.domain.chat.ChatTotalDTO;
+import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
+import com.example.aneukbeserver.domain.chatMessages.ChatMessagesRepository;
 import com.example.aneukbeserver.domain.chatMessages.InitMessageDTO;
 import com.example.aneukbeserver.domain.chatMessages.MessageType;
 import com.example.aneukbeserver.domain.member.Member;
@@ -11,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +24,9 @@ public class ChatService {
 
     @Autowired
     private ChatRepository chatRepository;
+
+    @Autowired
+    private ChatMessagesRepository chatMessagesRepository;
 
 
     private static final List<String> greetings = Arrays.asList(
@@ -68,6 +73,33 @@ public class ChatService {
         newChat.setCompleted(false); // 초기 값 설정
         chatRepository.save(newChat);
 
-        return new InitMessageDTO(newChat.getId(), randomGreeting(), MessageType.ASSISTANT);
+        String greetingMessage = randomGreeting();
+        ChatMessages chatMessages = new ChatMessages();
+        chatMessages.setChat(newChat);
+        chatMessages.setContent(greetingMessage);
+        chatMessages.setType(MessageType.ASSISTANT);
+
+        chatMessagesRepository.save(chatMessages);
+
+        return new InitMessageDTO(newChat.getId(), greetingMessage, MessageType.ASSISTANT);
+    }
+
+    @Transactional
+    public List<ChatTotalDTO> getTotalChat(Long chatId) {
+        List<ChatTotalDTO> chatTotalDTO = chatMessagesRepository.findAllByChatId(chatId).stream()
+                .map(chatMessages -> new ChatTotalDTO(
+                        chatMessages.getId(),
+                        chatMessages.getContent(),
+                        chatMessages.getType(),
+                        chatMessages.getSentTime()
+                ))
+                .toList();
+
+        if(chatTotalDTO.isEmpty()) return null;
+        return chatTotalDTO;
+    }
+
+    public Optional<Chat> getChatById(Long chatId) {
+        return chatRepository.findById(chatId);
     }
 }

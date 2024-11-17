@@ -2,6 +2,8 @@ package com.example.aneukbeserver.service;
 
 import com.example.aneukbeserver.domain.chat.Chat;
 import com.example.aneukbeserver.domain.chat.ChatRepository;
+import com.example.aneukbeserver.domain.chat.ChatTotalDTO;
+import com.example.aneukbeserver.domain.chatMessages.ChatMessagesRepository;
 import com.example.aneukbeserver.domain.chatMessages.InitMessageDTO;
 import com.example.aneukbeserver.domain.chatMessages.MessageType;
 import com.example.aneukbeserver.domain.member.Member;
@@ -16,12 +18,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatService {
 
     @Autowired
     private ChatRepository chatRepository;
+
+    @Autowired
+    private ChatMessagesRepository chatMessagesRepository;
 
 
     private static final List<String> greetings = Arrays.asList(
@@ -69,5 +75,20 @@ public class ChatService {
         chatRepository.save(newChat);
 
         return new InitMessageDTO(newChat.getId(), randomGreeting(), MessageType.ASSISTANT);
+    }
+
+    @Transactional
+    public List<ChatTotalDTO> getTotalChat(Long chatId) {
+        List<ChatTotalDTO> chatTotalDTO = chatMessagesRepository.findAllByChatId(chatId).stream()
+                .map(chatMessages -> new ChatTotalDTO(
+                        chatMessages.getId(),
+                        chatMessages.getContent(),
+                        chatMessages.getType(),
+                        chatMessages.getSentTime()
+                ))
+                .toList();
+
+        if(chatTotalDTO.isEmpty()) return null;
+        return chatTotalDTO;
     }
 }

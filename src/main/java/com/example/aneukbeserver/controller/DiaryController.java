@@ -5,7 +5,10 @@ import com.example.aneukbeserver.auth.jwt.JwtUtil;
 import com.example.aneukbeserver.domain.chat.Chat;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessageDTO;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
+import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.diary.DiaryAiResponseDTO;
+import com.example.aneukbeserver.domain.diary.EditDiaryDTO;
+import com.example.aneukbeserver.domain.diary.FinalDiaryDTO;
 import com.example.aneukbeserver.domain.diaryParagraph.*;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.service.*;
@@ -117,6 +120,34 @@ public class DiaryController {
 
     }
 
+    @Operation(summary = "2차(최종)일기 생성", description = "재구성된 문장을 모아서 최종 일기를 생성합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "500", description = "서버 에러, 관리자에게 문의 바랍니다."),
+            @ApiResponse(responseCode = "400", description = "사용자가 존재하지 않습니다."),
+            @ApiResponse(responseCode = "401", description = "채팅이 존재하지 않습니다.")
+
+    })
+    @GetMapping("/second-generate")
+    public ResponseEntity<StatusResponseDto> getFinalDiary(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken,@RequestParam("diaryId") Long diaryId) {
+        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
+        Optional<Member> member = memberService.findByEmail(userEmail);
+        Optional<Diary> diary = diaryService.getDiary(diaryId);
+
+        if (member.isEmpty())
+            return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
+        if (diary.isEmpty())
+            return ResponseEntity.badRequest().body(addStatus(401, "Diary가 존재하지 않습니다."));
+
+        FinalDiaryDTO finalDiaryDTO = new FinalDiaryDTO();
+        finalDiaryDTO.setDiary_id(diaryId);
+        finalDiaryDTO.setDate(diary.get().getCreatedDate().toLocalDate());
+        finalDiaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
+
+        return ResponseEntity.ok(addStatus(200, finalDiaryDTO));
+    }
+
+
     @Operation(summary = "감정 선택 후 문장 바뀜", description = "각 문단별로 감정 선택을 통해 문단을 재구성하여 response 합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공"),
@@ -166,5 +197,9 @@ public class DiaryController {
             return ResponseEntity.badRequest().body(addStatus(500, "Error communicating with AI server : " + e.getMessage()));
         }
     }
+
+
+
+
 
 }

@@ -141,7 +141,7 @@ public class DiaryController {
 
         FinalDiaryDTO finalDiaryDTO = new FinalDiaryDTO();
         finalDiaryDTO.setDiary_id(diaryId);
-        finalDiaryDTO.setDate(diary.get().getCreatedDate().toLocalDate());
+        finalDiaryDTO.setDate(diary.get().getCreatedDate());
         finalDiaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
 
         return ResponseEntity.ok(addStatus(200, finalDiaryDTO));

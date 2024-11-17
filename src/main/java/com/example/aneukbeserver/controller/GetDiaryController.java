@@ -11,6 +11,7 @@ import com.example.aneukbeserver.domain.diary.DiaryDTO;
 import com.example.aneukbeserver.domain.diary.MonthDiaryDTO;
 import com.example.aneukbeserver.domain.diaryParagraph.SelectParagraphDTO;
 import com.example.aneukbeserver.domain.member.Member;
+import com.example.aneukbeserver.service.ChatService;
 import com.example.aneukbeserver.service.DiaryService;
 import com.example.aneukbeserver.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +25,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -45,6 +47,9 @@ public class GetDiaryController {
 
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private ChatService chatService;
 
     @Autowired
     private DiaryService diaryService;
@@ -101,6 +106,82 @@ public class GetDiaryController {
         result.put("diaries_with_diary", monthDiaries);
 
         return ResponseEntity.ok(addStatus(200, result));
+    }
+
+    @Operation(summary = "특정 날짜의 일기 가져오기", description = "특정 날짜의 일기 가져오기")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 에러, 관리자에게 문의 바랍니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "사용자가 존재하지 않습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "사용자의 일기가 존재하지 않습니다.")
+
+    })
+    @GetMapping("/day")
+    public ResponseEntity<StatusResponseDto> getDateDiary(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam String date) {
+        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
+        Optional<Member> member = memberService.findByEmail(userEmail);
+
+        if (member.isEmpty())
+            return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
+
+       DiaryDTO diaryDTO = diaryService.getDateDiary(member.get(), date);
+
+        if (diaryDTO == null)
+            return ResponseEntity.badRequest().body(addStatus(401, "일기가 존재하지 않습니다."));
+
+        return ResponseEntity.ok(addStatus(200, diaryDTO));
+    }
+
+    @Operation(summary = "chatId로 일기 가져오기", description = "채팅 아이디로 일기 가져오기")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 에러, 관리자에게 문의 바랍니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "사용자가 존재하지 않습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "채팅이 존재하지 않습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "402", description = "일기가 존재하지 않습니다.")
+
+    })
+    @GetMapping("/chat-id")
+    public ResponseEntity<StatusResponseDto> getDiaryByChatId(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam Long chatId) {
+        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
+        Optional<Member> member = memberService.findByEmail(userEmail);
+
+        if (member.isEmpty())
+            return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
+
+        Optional<Chat> chat = chatService.getChatById(chatId);
+        if (chat.isEmpty())
+            return ResponseEntity.badRequest().body(addStatus(401, "채팅이 존재하지 않습니다."));
+        Long diaryId = diaryService.getDiaryIdByChatId(chat.get());
+
+        Optional<Diary> diary = diaryService.getDiary(diaryId);
+        if (diary.isEmpty())
+            return ResponseEntity.badRequest().body(addStatus(402, "일기가 존재하지 않습니다."));
+
+        return ResponseEntity.ok(addStatus(200, new DiaryDTO(diary.get().getId(), diary.get().getCreatedDate(), diaryService.mergeParagraph(diary.get().getParagraphs()))));
+    }
+
+    @Operation(summary = "diaryId로 일기 가져오기", description = "다이어리 아이디로 일기 가져오기")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 에러, 관리자에게 문의 바랍니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "사용자가 존재하지 않습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "402", description = "일기가 존재하지 않습니다.")
+
+    })
+    @GetMapping("/diary-id")
+    public ResponseEntity<StatusResponseDto> getDiaryByDiaryId(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam Long diaryId) {
+        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
+        Optional<Member> member = memberService.findByEmail(userEmail);
+
+        if (member.isEmpty())
+            return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
+
+        Optional<Diary> diary = diaryService.getDiary(diaryId);
+        if (diary.isEmpty())
+            return ResponseEntity.badRequest().body(addStatus(402, "일기가 존재하지 않습니다."));
+
+        return ResponseEntity.ok(addStatus(200, new DiaryDTO(diary.get().getId(), diary.get().getCreatedDate(), diaryService.mergeParagraph(diary.get().getParagraphs()))));
     }
 
 }

@@ -7,6 +7,8 @@ import com.example.aneukbeserver.domain.member.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +52,7 @@ public class DiaryService {
                 diary -> {
                     DiaryDTO diaryDTO = new DiaryDTO();
                     diaryDTO.setDiary_id(diary.getId());
-                    diaryDTO.setDate(diary.getCreatedDate().toLocalDate());
+                    diaryDTO.setDate(diary.getCreatedDate());
                     diaryDTO.setContent(mergeParagraph(diary.getParagraphs()));
 
                     diaryDTOS.add(diaryDTO);
@@ -71,12 +73,21 @@ public class DiaryService {
                     String diaryMonth = diary.getCreatedDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));
 
                     if(diaryMonth.equals(month)) {
-                        MonthDiaryDTO dto = new MonthDiaryDTO(diary.getCreatedDate().toLocalDate(), diary.getId());
+                        MonthDiaryDTO dto = new MonthDiaryDTO(diary.getCreatedDate(), diary.getId());
                         monthDiaries.add(dto);
                     }
                 }
         );
 
         return monthDiaries;
+    }
+
+    public DiaryDTO getDateDiary(Member member, String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        Diary diary = diaryRepository.findByMemberAndCreatedDate(member, localDate);
+
+        DiaryDTO diaryDTO = new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()));
+
+        return diaryDTO;
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -38,5 +39,16 @@ public class DiaryParagraphService {
                     diaryParagraphRepository.save(diaryParagraph);
         });
 
+    }
+
+    public Optional<DiaryParagraph> findByParagraphId(Long paragraphId) {
+        return diaryParagraphRepository.findById(paragraphId);
+    }
+
+    public void updateDiaryParagraph(DiaryParagraph diaryParagraph, String remadeContent) {
+        DiaryParagraph remadeParagraph = diaryParagraph;
+
+        remadeParagraph.setFinalContent(remadeContent);
+        diaryParagraphRepository.save(remadeParagraph);
     }
 }

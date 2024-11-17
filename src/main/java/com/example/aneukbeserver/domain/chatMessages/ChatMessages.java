@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@EntityListeners(AuditingEntityListener.class) //
 public class ChatMessages {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +30,8 @@ public class ChatMessages {
     @Enumerated(EnumType.STRING)
     private MessageType type;
 
-    @Column
     @CreatedDate
+    @Column(updatable = false)
     private LocalDateTime sentTime;
+
 }

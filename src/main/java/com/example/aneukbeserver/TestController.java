@@ -38,7 +38,7 @@ public class TestController {
     @GetMapping("/test")
     public List<String> test2() {
         RestTemplate restTemplate = new RestTemplate();
-        String externalContent = restTemplate.getForObject("http://localhost:2518/test", String.class);
+        String externalContent = restTemplate.getForObject("http://43.203.232.54:2518/static/index.html", String.class);
         System.out.println(externalContent);
         return List.of("sprint api content", externalContent);
     }

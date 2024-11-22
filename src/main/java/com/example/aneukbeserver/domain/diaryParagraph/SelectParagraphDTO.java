@@ -14,5 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class SelectParagraphDTO{
     private Long diary_id;
-    private List<SaveDiaryParagraphDTO> content_list;
+    private List<DiaryParagraphDTO> content_list;
 }
+
+

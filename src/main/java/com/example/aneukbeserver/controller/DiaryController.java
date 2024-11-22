@@ -5,11 +5,9 @@ import com.example.aneukbeserver.auth.jwt.JwtUtil;
 import com.example.aneukbeserver.domain.chat.Chat;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessageDTO;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
-import com.example.aneukbeserver.domain.diary.Diary;
-import com.example.aneukbeserver.domain.diary.DiaryAiResponseDTO;
-import com.example.aneukbeserver.domain.diary.EditDiaryDTO;
-import com.example.aneukbeserver.domain.diary.FinalDiaryDTO;
+import com.example.aneukbeserver.domain.diary.*;
 import com.example.aneukbeserver.domain.diaryParagraph.*;
+import com.example.aneukbeserver.domain.emotion.EmotionDTO;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.example.aneukbeserver.auth.dto.StatusResponseDto.addStatus;
 
@@ -57,6 +56,9 @@ public class DiaryController {
 
     @Autowired
     private DiaryParagraphService diaryParagraphService;
+
+    @Autowired
+    private EmotionService emotionService;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -109,9 +111,22 @@ public class DiaryController {
             diaryService.saveDiary(chat.get(), member.get());
             diaryParagraphService.saveParagraphs(chat.get(), aiResponse.getBody());
 
+            List<DiaryParagraphDTO> paragraphs = aiResponse.getBody().getContent_list().stream()
+                    .map(
+                            paragraph ->
+                            {
+                                List<EmotionDTO> emotionDetails = emotionService.getEmotionDetail(paragraph.getRecommend_emotion());
+                                DiaryParagraphDTO dto = new DiaryParagraphDTO();
+                                dto.setOrder_index(paragraph.getOrder_index());
+                                dto.setOriginal_content(paragraph.getOriginal_content());
+                                dto.setRecommend_emotion(emotionDetails); // EmotionDTO 리스트로 설정
+                                return dto;
+                    }).toList();
+
+
             SelectParagraphDTO selectParagraphDTO = new SelectParagraphDTO();
             selectParagraphDTO.setDiary_id(diaryService.getDiaryIdByChatId(chat.get()));
-            selectParagraphDTO.setContent_list(aiResponse.getBody().getContent_list());
+            selectParagraphDTO.setContent_list(paragraphs);
 
             return ResponseEntity.ok(addStatus(200, selectParagraphDTO));
         } catch (Exception e) {

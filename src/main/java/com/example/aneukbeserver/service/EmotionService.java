@@ -26,6 +26,7 @@ public class EmotionService {
         emotionResponseDTO.setEmotion_id(id);
         emotionResponseDTO.setEmotion_name(emotion.get().getTitle());
         emotionResponseDTO.setDescription(emotion.get().getExample());
+        emotionResponseDTO.setCategory(emotion.get().getCategory());
 
         return emotionResponseDTO;
     }

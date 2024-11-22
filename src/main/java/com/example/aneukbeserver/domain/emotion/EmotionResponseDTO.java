@@ -12,5 +12,6 @@ import lombok.Setter;
 public class EmotionResponseDTO {
     private Long emotion_id;
     private String emotion_name;
+    private String category;
     private String description;
 }

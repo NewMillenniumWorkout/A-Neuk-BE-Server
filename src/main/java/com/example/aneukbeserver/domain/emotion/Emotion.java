@@ -16,8 +16,8 @@ public class Emotion {
     private String title;
 
     @Column
-    private String example;
+    private String category;
 
-    @Column(columnDefinition = "float8[]")
-    private float[] embeddingVector;
+    @Column
+    private String example;
 }

@@ -177,39 +177,30 @@ public class ChatController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "사용자가 존재하지 않습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "일기가 존재하지 않습니다.")
     })
-    @PostMapping("/submit-image")
-    public ResponseEntity<StatusResponseDto> submitImage(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestPart("data") String data, @RequestPart("image") MultipartFile image) {
+    @PostMapping(value ="/submit-image", consumes = {"multipart/form-data"})
+    public ResponseEntity<StatusResponseDto> submitImage(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam("chat_id") Long chatId, @RequestParam("image") MultipartFile image) {
         String userEmail = jwtUtil.getEmail(accessToken.substring(7));
         Optional<Member> member = memberService.findByEmail(userEmail);
 
         if (member.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            Map<String, String> requestData = objectMapper.readValue(data, Map.class);
+        Diary diary = diaryService.getByChatId(chatId);
 
-            Long chatId = Long.valueOf(requestData.get("chat_id"));
-            Diary diary = diaryService.getByChatId(chatId);
+        if (diary == null)
+            return ResponseEntity.badRequest().body(addStatus(401, "일기가 존재하지 않습니다." ));
 
-            if (diary == null)
-                return ResponseEntity.badRequest().body(addStatus(401, "일기가 존재하지 않습니다." ));
-
-            String fileName = "";
-            if (image != null) { // 파일 업로드한 경우에만
-                try {
-                    fileName = s3Service.upload(image, "images"); // images 디렉토리에 저장
-                    System.out.println("fileName = " + fileName);
-                } catch (IOException e) {
-                    return ResponseEntity.badRequest().body(addStatus(500, "Image Upload Failed : " + e.getMessage()));
-                }
+        String fileName = "";
+        if (image != null) { // 파일 업로드한 경우에만
+            try {
+                fileName = s3Service.upload(image, "images"); // images 디렉토리에 저장
+                System.out.println("fileName = " + fileName);
+            } catch (IOException e) {
+                return ResponseEntity.badRequest().body(addStatus(500, "Image Upload Failed : " + e.getMessage()));
             }
-
-
-            return ResponseEntity.ok(addStatus(200, "Image Uploades successfully chat_id: " + chatId));
-
-        } catch (JsonProcessingException e) {
-            return ResponseEntity.badRequest().body(addStatus(500, "Image Upload Failed : " + e.getMessage()));
         }
+
+        return ResponseEntity.ok(addStatus(200, "Image Uploades successfully chat_id: " + chatId));
+
     }
 }

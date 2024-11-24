@@ -41,7 +41,7 @@ public class SecurityConfig {
                         authorizeRequests
                                 .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**")
                                 .permitAll()
-                                .requestMatchers("/", "/login/**", "/h2-console/**", "/token/**", "/chat/submit-image").permitAll()
+                                .requestMatchers("/", "/login/**", "/h2-console/**", "/token/**").permitAll()
                                 .anyRequest().authenticated()
                 ) // 요청에 대한 인증 설정
                 .oauth2Login(oauth2 -> oauth2 // OAuth2 로그인 설정 시작

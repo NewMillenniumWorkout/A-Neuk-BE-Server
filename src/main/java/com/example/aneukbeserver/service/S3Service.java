@@ -32,6 +32,7 @@ public class S3Service {
 
     // MultipartFile -> File & upload S3
     public String upload(MultipartFile multipartFile, String dirName) throws IOException {
+        log.info(String.valueOf(multipartFile));
         File uploadFile = convert(multipartFile)
                 .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> 전환 실패"));
 
@@ -55,10 +56,12 @@ public class S3Service {
     }
 
     private String putS3(File uploadFile, String fileName) {
+        log.info("Uploading file: {} to bucket: {} with key: {}", uploadFile.getAbsolutePath(), bucket, fileName);
         amazonS3.putObject(
                 new PutObjectRequest(bucket, fileName, uploadFile)
-                        .withCannedAcl(CannedAccessControlList.PublicRead)
+//                        .withCannedAcl(CannedAccessControlList.PublicRead)
         );
+        log.info("Upload successful. Generating URL...");
         return amazonS3.getUrl(bucket, fileName).toString();
     }
 

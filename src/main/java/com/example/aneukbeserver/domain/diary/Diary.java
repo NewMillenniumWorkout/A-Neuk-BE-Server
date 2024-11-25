@@ -35,4 +35,7 @@ public class Diary {
 
     @OneToMany(mappedBy = "diary")
     private List<DiaryParagraph> paragraphs;
+
+    @Column(name = "image_url")
+    private String imageUrl;
 }

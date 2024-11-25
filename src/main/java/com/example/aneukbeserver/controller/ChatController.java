@@ -6,16 +6,18 @@ import com.example.aneukbeserver.auth.jwt.JwtUtil;
 import com.example.aneukbeserver.domain.chat.Chat;
 import com.example.aneukbeserver.domain.chat.ChatTotalDTO;
 import com.example.aneukbeserver.domain.chatMessages.*;
+import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.member.Member;
-import com.example.aneukbeserver.service.ChatMessagesService;
-import com.example.aneukbeserver.service.ChatService;
-import com.example.aneukbeserver.service.MemberService;
+import com.example.aneukbeserver.service.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.apache.bcel.generic.ObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.TimeoutUtils;
@@ -25,7 +27,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +57,13 @@ public class ChatController {
     private ChatMessagesService chatMessagesService;
 
     @Autowired
+    private DiaryService diaryService;
+
+    @Autowired
     private  RestTemplate restTemplate;
+
+    @Autowired
+    private S3Service s3Service;
 
     @Operation(summary = "초기 채팅 메시지", description = "오늘 날짜의 채팅이 있다면 그 chatId를 리턴하고, 없다면 새로운 chatId를 리턴합니다")
     @ApiResponses(value = {
@@ -159,4 +169,38 @@ public class ChatController {
         }
     }
 
+
+    @Operation(summary = "이미지 전송", description = "이미지를 저장합니다")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 에러, 관리자에게 문의 바랍니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "사용자가 존재하지 않습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "일기가 존재하지 않습니다.")
+    })
+    @PostMapping(value ="/submit-image", consumes = {"multipart/form-data"})
+    public ResponseEntity<StatusResponseDto> submitImage(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam("chat_id") Long chatId, @RequestParam("image") MultipartFile image) {
+        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
+        Optional<Member> member = memberService.findByEmail(userEmail);
+
+        if (member.isEmpty())
+            return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
+
+        Diary diary = diaryService.getByChatId(chatId);
+
+        if (diary == null)
+            return ResponseEntity.badRequest().body(addStatus(401, "일기가 존재하지 않습니다." ));
+
+        String fileName = "";
+        if (image != null) { // 파일 업로드한 경우에만
+            try {
+                fileName = s3Service.upload(image, userEmail + "/" + diary.getId()); // images 디렉토리에 저장
+                System.out.println("fileName = " + fileName);
+            } catch (IOException e) {
+                return ResponseEntity.badRequest().body(addStatus(500, "Image Upload Failed : " + e.getMessage()));
+            }
+        }
+
+        return ResponseEntity.ok(addStatus(200, "Image Uploades successfully chat_id: " + chatId));
+
+    }
 }

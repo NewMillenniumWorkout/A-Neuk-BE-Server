@@ -56,12 +56,11 @@ public class MyAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucce
         log.info("JWT Token = {}", token.getAccessToken());
 
         String redirectUri = "http://localhost:3000"; // 테스트용 로컬 URI
-        String encodedAccessToken = Base64.getEncoder().encodeToString(token.getAccessToken().getBytes());
 
         // 이메일과 인코딩된 액세스 토큰을 쿼리 파라미터로 추가
         String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
                 .queryParam("email", email)
-                .queryParam("accessToken", encodedAccessToken)
+                .queryParam("accessToken", token.getAccessToken())
                 .build()
                 .toUriString();
 

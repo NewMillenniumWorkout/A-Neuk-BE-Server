@@ -43,6 +43,7 @@ public class EmotionService {
                     emotionDTO.setExample(emotion.getExample());
                     emotionDTO.setCategory(emotion.getCategory());
                     emotionDTO.setTitle(emotion.getTitle());
+                    emotionDTO.setDescription(emotion.getDescription());
                     return emotionDTO;
                 })
                 .filter(Objects::nonNull) // null 제거 (옵션)

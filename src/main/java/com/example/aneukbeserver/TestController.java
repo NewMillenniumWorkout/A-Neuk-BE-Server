@@ -21,18 +21,18 @@ public class TestController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Operation(summary = "test api", description = "testtesttest")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공",
-                    content = {@Content(schema = @Schema(implementation = String.class))}),
-            @ApiResponse(responseCode = "404", description = "errorororor"),
-    })
-    @GetMapping
-    @ResponseBody
-    public ResponseEntity<String> test() {
-        String message = "SUCCESS?!?!?!?";
-        return ResponseEntity.ok(message);
-    }
+//    @Operation(summary = "test api", description = "testtesttest")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "성공",
+//                    content = {@Content(schema = @Schema(implementation = String.class))}),
+//            @ApiResponse(responseCode = "404", description = "errorororor"),
+//    })
+//    @GetMapping
+//    @ResponseBody
+//    public ResponseEntity<String> test() {
+//        String message = "SUCCESS?!?!?!?";
+//        return ResponseEntity.ok(message);
+//    }
 
 
     @GetMapping("/test")

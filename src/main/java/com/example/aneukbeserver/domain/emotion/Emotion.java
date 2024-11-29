@@ -19,5 +19,8 @@ public class Emotion {
     private String category;
 
     @Column
+    private String description;
+
+    @Column
     private String example;
 }

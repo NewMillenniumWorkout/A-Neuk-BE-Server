@@ -8,4 +8,5 @@ public class EmotionDTO {
     private String title;
     private String category;
     private String example;
+    private String description;
 }

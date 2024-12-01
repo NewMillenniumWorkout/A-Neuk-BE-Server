@@ -64,12 +64,12 @@ public class ChatService {
         Optional<Chat> latestChatOpt = chatRepository.findTopByMemberIdOrderByCreatedDateDesc(member.getId());
 
         // 가장 최근의 채팅이 존재하고, 그 채팅의 생성일이 오늘인 경우 해당 채팅 반환
-        if (latestChatOpt.isPresent()) {
-            Chat latestChat = latestChatOpt.get();
-            if (latestChat.getCreatedDate().toLocalDate().isEqual(LocalDate.now())) {
-                return new InitMessageDTO(latestChat.getId(), "오늘의 채팅이 이미 존재합니다.", MessageType.SYSTEM);
-            }
-        }
+//        if (latestChatOpt.isPresent()) {
+//            Chat latestChat = latestChatOpt.get();
+//            if (latestChat.getCreatedDate().toLocalDate().isEqual(LocalDate.now())) {
+//                return new InitMessageDTO(latestChat.getId(), "오늘의 채팅이 이미 존재합니다.", MessageType.SYSTEM);
+//            }
+//        }
 
         // 최근 채팅이 없거나 가장 최근의 채팅이 오늘이 아닌 경우 새로운 채팅 생성
         Diary diary = new Diary();

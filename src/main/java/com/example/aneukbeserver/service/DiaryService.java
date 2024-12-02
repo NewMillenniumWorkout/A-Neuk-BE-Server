@@ -3,7 +3,6 @@ package com.example.aneukbeserver.service;
 import com.example.aneukbeserver.domain.chat.Chat;
 import com.example.aneukbeserver.domain.chat.ChatRepository;
 import com.example.aneukbeserver.domain.diary.Diary;
-import com.example.aneukbeserver.domain.diary.DiaryAiResponseDTO;
 import com.example.aneukbeserver.domain.diary.DiaryRepository;
 import com.example.aneukbeserver.domain.diary.*;
 import com.example.aneukbeserver.domain.diaryParagraph.DiaryParagraph;
@@ -12,11 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -106,5 +105,12 @@ public class DiaryService {
         DiaryDTO diaryDTO = new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()));
 
         return diaryDTO;
+    }
+
+    public Optional<Diary> getRandomDiary(Member member) {
+        List<Diary> diaries = diaryRepository.findAllByMember(member);
+        if(diaries.isEmpty()) return Optional.empty();
+
+        return Optional.of(diaries.get(new Random().nextInt(diaries.size())));
     }
 }

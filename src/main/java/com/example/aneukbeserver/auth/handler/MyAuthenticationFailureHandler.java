@@ -25,6 +25,9 @@ public class MyAuthenticationFailureHandler implements AuthenticationFailureHand
         ObjectMapper objectMapper = new ObjectMapper();
         response.getWriter().write(objectMapper.writeValueAsString(new LoginFailureResponse("error", "Invalid credentials")));
         // 인증 실패시 메인 페이지로 이동
-        response.sendRedirect("http://localhost:7010/");
+//        response.sendRedirect("http://localhost:7010/");
+
+        // JSON 응답 작성
+//        response.getWriter().write(errorResponse);
     }
 }

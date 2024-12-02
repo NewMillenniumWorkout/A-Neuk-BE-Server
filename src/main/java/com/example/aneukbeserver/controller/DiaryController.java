@@ -103,7 +103,7 @@ public class DiaryController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(aiRequest, headers);
 
-            String aiChatUrl = "http://localhost:2518/ai/diary/";
+            String aiChatUrl = "http://localhost:8000/ai/diary/";
 
             ResponseEntity<DiaryAiResponseDTO> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, DiaryAiResponseDTO.class);
 
@@ -195,7 +195,7 @@ public class DiaryController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(aiRequest, headers);
 
-            String aiChatUrl = "http://localhost:2518/ai/remake/";
+            String aiChatUrl = "http://localhost:8000/ai/remake/";
 
             log.info(String.valueOf(restTemplate.postForEntity(aiChatUrl, entity, Map.class)));
             ResponseEntity<Map> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, Map.class);

@@ -13,7 +13,6 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.addAllowedOrigin("http://10.210.60.108"); // 허용할 출처
         configuration.addAllowedOrigin("http://localhost:3000"); // 허용할 출처
         configuration.addAllowedOrigin("http://43.203.232.54:2518"); // 허용할 출처
         configuration.addAllowedMethod("*");

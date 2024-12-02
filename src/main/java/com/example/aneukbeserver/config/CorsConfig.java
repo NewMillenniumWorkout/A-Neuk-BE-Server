@@ -15,6 +15,7 @@ public class CorsConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:3000"); // 허용할 출처
         configuration.addAllowedOrigin("http://43.203.232.54:2518"); // 허용할 출처
+        configuration.addAllowedOrigin("https://aneuk-api.dev-lr.com"); // 허용할 출처
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);

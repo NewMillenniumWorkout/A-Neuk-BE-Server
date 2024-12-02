@@ -157,7 +157,7 @@ public class ChatController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(aiRequest, headers);
 
-            String aiChatUrl = "http://43.203.232.54:2518/ai/chat/";
+            String aiChatUrl = "http://localhost:2518/ai/chat/";
 
             ResponseEntity<ChatAiResponseDTO> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, ChatAiResponseDTO.class);
 

@@ -7,11 +7,13 @@ import com.example.aneukbeserver.domain.chatMessages.ChatMessageDTO;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
 import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.diary.DiaryAiResponseDTO;
-import com.example.aneukbeserver.domain.diary.FinalDiaryDTO;
+import com.example.aneukbeserver.domain.diary.DiaryDTO;
 import com.example.aneukbeserver.domain.diaryParagraph.*;
 import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.emotion.EmotionDTO;
 import com.example.aneukbeserver.domain.member.Member;
+import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
+
 import com.example.aneukbeserver.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,6 +34,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.example.aneukbeserver.auth.dto.StatusResponseDto.addStatus;
 
@@ -67,6 +70,9 @@ public class DiaryController {
 
     @Autowired
     private SelectedEmotionService selectedEmotionService;
+
+    @Autowired
+    private S3Service s3Service;
 
     @Value("${spring.ai.url}")
     private String aiUrl;
@@ -161,12 +167,21 @@ public class DiaryController {
         if (diary.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(401, "Diary가 존재하지 않습니다."));
 
-        FinalDiaryDTO finalDiaryDTO = new FinalDiaryDTO();
-        finalDiaryDTO.setDiary_id(diaryId);
-        finalDiaryDTO.setDate(diary.get().getCreatedDate());
-        finalDiaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
+        String imageUrl = s3Service.getImage(member.get(), diary.get());
 
-        return ResponseEntity.ok(addStatus(200, finalDiaryDTO));
+        List<Emotion> emotionList = diary.get().getParagraphs().stream()
+                .flatMap(paragraph -> paragraph.getEmotionList().stream())
+                .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                .toList();
+
+        DiaryDTO diaryDTO = new DiaryDTO();
+        diaryDTO.setDiary_id(diaryId);
+        diaryDTO.setDate(diary.get().getCreatedDate());
+        diaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
+        diaryDTO.setImageUrl(imageUrl);
+        diaryDTO.setEmotionList(emotionList);
+
+        return ResponseEntity.ok(addStatus(200, diaryDTO));
     }
 
 

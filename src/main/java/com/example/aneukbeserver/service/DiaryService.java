@@ -6,16 +6,17 @@ import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.diary.DiaryRepository;
 import com.example.aneukbeserver.domain.diary.*;
 import com.example.aneukbeserver.domain.diaryParagraph.DiaryParagraph;
+import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.member.Member;
+import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +26,10 @@ public class DiaryService {
 
     @Autowired
     private ChatRepository chatRepository;
+
+    @Autowired
+    private S3Service s3Service;
+
 
     public void saveDiary(Chat chat, Member member) {
         Diary diary = new Diary();
@@ -54,6 +59,7 @@ public class DiaryService {
 
     public String mergeParagraph(List<DiaryParagraph> paragraphs) {
         return paragraphs.stream()
+                .sorted(Comparator.comparing(DiaryParagraph::getOrderIndex))
                 .map(paragraph -> paragraph.getFinalContent() != null
                                 ? paragraph.getFinalContent()
                         : paragraph.getOriginalContent()
@@ -66,11 +72,12 @@ public class DiaryService {
 
         diaries.forEach(
                 diary -> {
+                    String imageUrl = s3Service.getImage(member, diary);
                     DiaryDTO diaryDTO = new DiaryDTO();
                     diaryDTO.setDiary_id(diary.getId());
                     diaryDTO.setDate(diary.getCreatedDate());
                     diaryDTO.setContent(mergeParagraph(diary.getParagraphs()));
-
+                    diaryDTO.setImageUrl(imageUrl);
                     diaryDTOS.add(diaryDTO);
                 }
         );
@@ -100,11 +107,22 @@ public class DiaryService {
 
     public DiaryDTO getDateDiary(Member member, String date) {
         LocalDate localDate = LocalDate.parse(date);
-        Diary diary = diaryRepository.findByMemberAndCreatedDate(member, localDate);
+        List<Diary> diaries = diaryRepository.findByMemberAndCreatedDate(member, localDate);
 
-        DiaryDTO diaryDTO = new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()));
+        if (diaries.isEmpty()) {
+            throw new EntityNotFoundException("Diary not found for member and date");
+        }
+        Diary diary = diaries.get(0);
+//        Diary diary = diaryRepository.findByMemberAndCreatedDate(member, localDate);
 
-        return diaryDTO;
+        String imageUrl = s3Service.getImage(member, diary);
+
+        List<Emotion> emotionList = diary.getParagraphs().stream()
+                .flatMap(paragraph -> paragraph.getEmotionList().stream())
+                .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                .toList();
+
+        return new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()), imageUrl, emotionList);
     }
 
     public Optional<Diary> getRandomDiary(Member member) {
@@ -113,4 +131,6 @@ public class DiaryService {
 
         return Optional.of(diaries.get(new Random().nextInt(diaries.size())));
     }
+
 }
+

@@ -3,7 +3,6 @@ package com.example.aneukbeserver.controller;
 
 import com.example.aneukbeserver.auth.dto.StatusResponseDto;
 import com.example.aneukbeserver.auth.jwt.JwtUtil;
-import com.example.aneukbeserver.domain.chatMessages.InitMessageDTO;
 import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.diary.DiaryDTO;
 import com.example.aneukbeserver.domain.member.Member;
@@ -20,9 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 import static com.example.aneukbeserver.auth.dto.StatusResponseDto.addStatus;
@@ -47,6 +44,10 @@ public class HomeController {
 
     @Autowired
     private DiaryService diaryService;
+
+    @Autowired
+    private S3Service s3Service;
+
     @Operation(summary = "랜덤 일기", description = "랜덤 일기를 response 합니다")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
@@ -68,10 +69,14 @@ public class HomeController {
         if (diary.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(401, "일기가 존재하지 않습니다."));
 
+        String imageUrl = s3Service.getImage(member.get(), diary.get());
+
         DiaryDTO diaryDTO = new DiaryDTO();
         diaryDTO.setDiary_id(diary.get().getId());
         diaryDTO.setDate(diary.get().getCreatedDate());
         diaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
+        diaryDTO.setImageUrl(imageUrl);
+
         return ResponseEntity.ok(addStatus(200, diaryDTO));
 
     }

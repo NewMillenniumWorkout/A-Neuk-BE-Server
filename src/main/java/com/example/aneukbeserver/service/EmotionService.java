@@ -34,21 +34,27 @@ public class EmotionService {
     public List<EmotionDTO> getEmotionDetail(List<String> titles) {
         List<EmotionDTO> emotions = titles.stream()
                 .map(title -> {
-                    Emotion emotion = emotionRepository.findByTitle(title);
-                    if (emotion == null) {
+                    Optional<Emotion> emotion = emotionRepository.findByTitle(title);
+                    if (emotion.isEmpty()) {
                         return null; // 존재하지 않는 경우 처리
                     }
                     EmotionDTO emotionDTO = new EmotionDTO();
-                    emotionDTO.setId(emotion.getId());
-                    emotionDTO.setExample(emotion.getExample());
-                    emotionDTO.setCategory(emotion.getCategory());
-                    emotionDTO.setTitle(emotion.getTitle());
-                    emotionDTO.setDescription(emotion.getDescription());
+                    emotionDTO.setId(emotion.get().getId());
+                    emotionDTO.setExample(emotion.get().getExample());
+                    emotionDTO.setCategory(emotion.get().getCategory());
+                    emotionDTO.setTitle(emotion.get().getTitle());
+                    emotionDTO.setDescription(emotion.get().getDescription());
                     return emotionDTO;
                 })
                 .filter(Objects::nonNull) // null 제거 (옵션)
                 .collect(Collectors.toList());
         return emotions;
+    }
+
+    public List<Emotion> getEmotionObjectsByNames(List<String> emotionNames) {
+        return emotionNames.stream().map(emotionName -> emotionRepository.findByTitle(emotionName)
+                .orElseThrow(() -> new IllegalArgumentException("Emotion not found with name: " + emotionName)))
+                .collect(Collectors.toList());
     }
 
 

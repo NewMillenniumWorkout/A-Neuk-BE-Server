@@ -1,26 +1,24 @@
 package com.example.aneukbeserver.controller;
 
-import ch.qos.logback.core.util.TimeUtil;
 import com.example.aneukbeserver.auth.dto.StatusResponseDto;
 import com.example.aneukbeserver.auth.jwt.JwtUtil;
 import com.example.aneukbeserver.domain.chat.Chat;
 import com.example.aneukbeserver.domain.chat.ChatTotalDTO;
-import com.example.aneukbeserver.domain.chatMessages.*;
+import com.example.aneukbeserver.domain.chatMessages.ChatAiResponseDTO;
+import com.example.aneukbeserver.domain.chatMessages.ChatMessageDTO;
+import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
+import com.example.aneukbeserver.domain.chatMessages.InitMessageDTO;
 import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.service.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.apache.bcel.generic.ObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.TimeoutUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -30,11 +28,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.example.aneukbeserver.auth.dto.StatusResponseDto.addStatus;
 
@@ -60,10 +56,13 @@ public class ChatController {
     private DiaryService diaryService;
 
     @Autowired
-    private  RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 
     @Autowired
     private S3Service s3Service;
+
+    @Value("${spring.ai.url}")
+    private String aiUrl;
 
     @Operation(summary = "초기 채팅 메시지", description = "오늘 날짜의 채팅이 있다면 그 chatId를 리턴하고, 없다면 새로운 chatId를 리턴합니다")
     @ApiResponses(value = {
@@ -102,7 +101,7 @@ public class ChatController {
 
         List<ChatTotalDTO> chatTotalDTO = chatService.getTotalChat(chatId);
 
-        if(chatTotalDTO.isEmpty())
+        if (chatTotalDTO.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(401, "채팅이 존재하지 않습니다."));
 
         return ResponseEntity.ok(addStatus(200, chatService.getTotalChat(chatId)));
@@ -157,7 +156,7 @@ public class ChatController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(aiRequest, headers);
 
-            String aiChatUrl = "http://server-fastapi:8000/ai/chat/";
+            String aiChatUrl = aiUrl + "/ai/chat/";
 
             ResponseEntity<ChatAiResponseDTO> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, ChatAiResponseDTO.class);
 
@@ -177,7 +176,7 @@ public class ChatController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "사용자가 존재하지 않습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "일기가 존재하지 않습니다.")
     })
-    @PostMapping(value ="/submit-image", consumes = {"multipart/form-data"})
+    @PostMapping(value = "/submit-image", consumes = {"multipart/form-data"})
     public ResponseEntity<StatusResponseDto> submitImage(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam("chat_id") Long chatId, @RequestParam("image") MultipartFile image) {
         String userEmail = jwtUtil.getEmail(accessToken.substring(7));
         Optional<Member> member = memberService.findByEmail(userEmail);
@@ -188,7 +187,7 @@ public class ChatController {
         Diary diary = diaryService.getByChatId(chatId);
 
         if (diary == null)
-            return ResponseEntity.badRequest().body(addStatus(401, "일기가 존재하지 않습니다." ));
+            return ResponseEntity.badRequest().body(addStatus(401, "일기가 존재하지 않습니다."));
 
         String fileName = "";
         if (image != null) { // 파일 업로드한 경우에만

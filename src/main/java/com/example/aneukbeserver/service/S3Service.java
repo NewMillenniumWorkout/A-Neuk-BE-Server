@@ -6,6 +6,8 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.example.aneukbeserver.domain.diary.Diary;
+import com.example.aneukbeserver.domain.member.Member;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import javax.swing.text.html.Option;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Optional;
 
 
@@ -40,8 +43,7 @@ public class S3Service {
     }
 
     private String S3UploadUrl(File uploadFile, String dirName) {
-        String fileName = dirName + "/" + uploadFile.getName();
-        String uploadImageUrl = putS3(uploadFile, fileName);
+        String uploadImageUrl = putS3(uploadFile, dirName);
 
         removeNewFile(uploadFile); // convert()함수로 인해 로컬에 생성된 파일 삭제
 
@@ -74,5 +76,16 @@ public class S3Service {
         }
         return Optional.empty();
     }
+
+
+    public String getImage(Member member, Diary diary) {
+        String key = member.getEmail() + "/" + diary.getId();
+        URL url = amazonS3.getUrl(bucket,  key);
+        String urlText = ""+ url;
+
+        return urlText;
+    }
+
+
 
 }

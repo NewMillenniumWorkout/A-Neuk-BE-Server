@@ -67,6 +67,9 @@ public class DiaryController {
     @Autowired
     private SelectedEmotionService selectedEmotionService;
 
+    @Autowired
+    private S3Service s3Service;
+
 
     @Operation(summary = "1차 일기 생성", description = "현재 진행 중인 채팅을 1차 일기를 생성합니다.")
     @ApiResponses(value = {
@@ -158,10 +161,14 @@ public class DiaryController {
         if (diary.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(401, "Diary가 존재하지 않습니다."));
 
+        String imageUrl = s3Service.getImage(member.get(), diary.get());
+        log.info(imageUrl);
+
         FinalDiaryDTO finalDiaryDTO = new FinalDiaryDTO();
         finalDiaryDTO.setDiary_id(diaryId);
         finalDiaryDTO.setDate(diary.get().getCreatedDate());
         finalDiaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
+        finalDiaryDTO.setImageUrl(imageUrl);
 
         return ResponseEntity.ok(addStatus(200, finalDiaryDTO));
     }

@@ -49,6 +49,7 @@ public class DiaryService {
     }
 
     public Optional<Diary> getDiary(Long diaryId) {
+
         return diaryRepository.findById(diaryId);
     }
 

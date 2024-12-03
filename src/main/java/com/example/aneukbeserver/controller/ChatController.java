@@ -157,7 +157,7 @@ public class ChatController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(aiRequest, headers);
 
-            String aiChatUrl = "http://server-fastapi:8000/ai/chat/";
+            String aiChatUrl = "http://43.203.232.54:2518/ai/chat/";
 
             ResponseEntity<ChatAiResponseDTO> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, ChatAiResponseDTO.class);
 

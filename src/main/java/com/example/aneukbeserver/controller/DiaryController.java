@@ -7,6 +7,7 @@ import com.example.aneukbeserver.domain.chatMessages.ChatMessageDTO;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
 import com.example.aneukbeserver.domain.diary.*;
 import com.example.aneukbeserver.domain.diaryParagraph.*;
+import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.emotion.EmotionDTO;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.service.*;
@@ -63,6 +64,9 @@ public class DiaryController {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private SelectedEmotionService selectedEmotionService;
+
 
     @Operation(summary = "1차 일기 생성", description = "현재 진행 중인 채팅을 1차 일기를 생성합니다.")
     @ApiResponses(value = {
@@ -103,7 +107,7 @@ public class DiaryController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(aiRequest, headers);
 
-            String aiChatUrl = "http://server-fastapi:8000/ai/diary/";
+            String aiChatUrl = "http://43.203.232.54:2518/ai/diary/";
 
             ResponseEntity<DiaryAiResponseDTO> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, DiaryAiResponseDTO.class);
 
@@ -183,19 +187,23 @@ public class DiaryController {
         if (diaryParagraph.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(401, "Paragraph이 존재하지 않습니다."));
 
-        List<String> emotion_list = Collections.singletonList(request.getEmotions().toString());
+        List<String> emotion_list = request.getEmotions();
+
+        List<Emotion> emotionList = emotionService.getEmotionObjectsByNames(emotion_list);
 
         Map<String, Object> aiRequest = Map.of(
                 "original_content", request.getOriginal_content(),
                 "emotion_list", emotion_list
         );
 
+        selectedEmotionService.saveSelectedEmotions(diaryParagraph.get(), emotionList);
+
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(aiRequest, headers);
 
-            String aiChatUrl = "http://server-fastapi:8000/ai/remake/";
+            String aiChatUrl = "http://43.203.232.54:2518/ai/remake/";
 
             log.info(String.valueOf(restTemplate.postForEntity(aiChatUrl, entity, Map.class)));
             ResponseEntity<Map> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, Map.class);

@@ -5,7 +5,10 @@ import com.example.aneukbeserver.auth.jwt.JwtUtil;
 import com.example.aneukbeserver.domain.chat.Chat;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessageDTO;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
-import com.example.aneukbeserver.domain.diary.*;
+import com.example.aneukbeserver.domain.diary.Diary;
+import com.example.aneukbeserver.domain.diary.DiaryAiResponseDTO;
+import com.example.aneukbeserver.domain.diary.DiaryDTO;
+import com.example.aneukbeserver.domain.diary.FinalDiaryDTO;
 import com.example.aneukbeserver.domain.diaryParagraph.*;
 import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.emotion.EmotionDTO;
@@ -19,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -26,11 +30,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.example.aneukbeserver.auth.dto.StatusResponseDto.addStatus;
 
@@ -70,6 +72,8 @@ public class DiaryController {
     @Autowired
     private S3Service s3Service;
 
+    @Value("${spring.ai.url}")
+    private String aiUrl;
 
     @Operation(summary = "1차 일기 생성", description = "현재 진행 중인 채팅을 1차 일기를 생성합니다.")
     @ApiResponses(value = {
@@ -110,7 +114,7 @@ public class DiaryController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(aiRequest, headers);
 
-            String aiChatUrl = "http://43.203.232.54:2518/ai/diary/";
+            String aiChatUrl = aiUrl + "/ai/diary/";
 
             ResponseEntity<DiaryAiResponseDTO> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, DiaryAiResponseDTO.class);
 
@@ -128,7 +132,7 @@ public class DiaryController {
                                 dto.setOriginal_content(paragraph.getOriginal_content());
                                 dto.setRecommend_emotion(emotionDetails); // EmotionDTO 리스트로 설정
                                 return dto;
-                    }).toList();
+                            }).toList();
 
 
             SelectParagraphDTO selectParagraphDTO = new SelectParagraphDTO();
@@ -151,7 +155,7 @@ public class DiaryController {
 
     })
     @GetMapping("/second-generate")
-    public ResponseEntity<StatusResponseDto> getFinalDiary(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken,@RequestParam("diaryId") Long diaryId) {
+    public ResponseEntity<StatusResponseDto> getFinalDiary(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam("diaryId") Long diaryId) {
         String userEmail = jwtUtil.getEmail(accessToken.substring(7));
         Optional<Member> member = memberService.findByEmail(userEmail);
         Optional<Diary> diary = diaryService.getDiary(diaryId);
@@ -209,7 +213,7 @@ public class DiaryController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(aiRequest, headers);
 
-            String aiChatUrl = "http://43.203.232.54:2518/ai/remake/";
+            String aiChatUrl = aiUrl + "/ai/remake/";
 
             log.info(String.valueOf(restTemplate.postForEntity(aiChatUrl, entity, Map.class)));
             ResponseEntity<Map> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, Map.class);
@@ -226,9 +230,6 @@ public class DiaryController {
             return ResponseEntity.badRequest().body(addStatus(500, "Error communicating with AI server : " + e.getMessage()));
         }
     }
-
-
-
 
 
 }

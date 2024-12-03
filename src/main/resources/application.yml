@@ -10,6 +10,7 @@ spring:
 
   jwt:
     secret: ${JWT_SECRET}
+    success-redirect: ${AUTH_SUCCESS_REDIRECT}
 
   security:
     oauth2:
@@ -69,6 +70,10 @@ spring:
     host: localhost
     port: ${REDIS_PORT}
     password: ${REDIS_PASSWORD}
+
+  ai:
+    url: ${AI_SERVER_URL}
+
 
 server:
   port: 7010

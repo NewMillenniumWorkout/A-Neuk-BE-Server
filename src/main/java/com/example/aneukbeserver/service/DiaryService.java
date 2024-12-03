@@ -6,7 +6,9 @@ import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.diary.DiaryRepository;
 import com.example.aneukbeserver.domain.diary.*;
 import com.example.aneukbeserver.domain.diaryParagraph.DiaryParagraph;
+import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.member.Member;
+import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -116,8 +118,12 @@ public class DiaryService {
 
         String imageUrl = s3Service.getImage(member, diary);
 
+        List<Emotion> emotionList = diary.getParagraphs().stream()
+                .flatMap(paragraph -> paragraph.getEmotionList().stream())
+                .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                .toList();
 
-        return new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()), imageUrl);
+        return new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()), imageUrl, emotionList);
     }
 
     public Optional<Diary> getRandomDiary(Member member) {
@@ -126,4 +132,6 @@ public class DiaryService {
 
         return Optional.of(diaries.get(new Random().nextInt(diaries.size())));
     }
+
 }
+

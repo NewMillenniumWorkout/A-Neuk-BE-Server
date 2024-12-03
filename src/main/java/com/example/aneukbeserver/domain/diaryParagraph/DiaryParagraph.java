@@ -1,6 +1,7 @@
 package com.example.aneukbeserver.domain.diaryParagraph;
 
 import com.example.aneukbeserver.domain.diary.Diary;
+import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,4 +28,7 @@ public class DiaryParagraph {
 
     @Column
     private String finalContent;
+
+    @OneToMany(mappedBy = "diaryParagraph", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SelectedEmotion> emotionList;
 }

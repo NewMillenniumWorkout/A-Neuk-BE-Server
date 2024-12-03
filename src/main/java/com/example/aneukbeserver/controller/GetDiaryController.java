@@ -10,7 +10,9 @@ import com.example.aneukbeserver.domain.diary.DiaryAiResponseDTO;
 import com.example.aneukbeserver.domain.diary.DiaryDTO;
 import com.example.aneukbeserver.domain.diary.MonthDiaryDTO;
 import com.example.aneukbeserver.domain.diaryParagraph.SelectParagraphDTO;
+import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.member.Member;
+import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
 import com.example.aneukbeserver.service.ChatService;
 import com.example.aneukbeserver.service.DiaryService;
 import com.example.aneukbeserver.service.MemberService;
@@ -164,8 +166,13 @@ public class GetDiaryController {
 
         String imageUrl = s3Service.getImage(member.get(), diary.get());
 
+        List<Emotion> emotionList = diary.get().getParagraphs().stream()
+                .flatMap(paragraph -> paragraph.getEmotionList().stream())
+                .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                .toList();
 
-        return ResponseEntity.ok(addStatus(200, new DiaryDTO(diary.get().getId(), diary.get().getCreatedDate(), diaryService.mergeParagraph(diary.get().getParagraphs()), imageUrl)));
+
+        return ResponseEntity.ok(addStatus(200, new DiaryDTO(diary.get().getId(), diary.get().getCreatedDate(), diaryService.mergeParagraph(diary.get().getParagraphs()), imageUrl, emotionList)));
     }
 
     @Operation(summary = "diaryId로 일기 가져오기", description = "다이어리 아이디로 일기 가져오기")
@@ -190,7 +197,12 @@ public class GetDiaryController {
 
         String imageUrl = s3Service.getImage(member.get(), diary.get());
 
-        return ResponseEntity.ok(addStatus(200, new DiaryDTO(diary.get().getId(), diary.get().getCreatedDate(), diaryService.mergeParagraph(diary.get().getParagraphs()), imageUrl)));
+        List<Emotion> emotionList = diary.get().getParagraphs().stream()
+                .flatMap(paragraph -> paragraph.getEmotionList().stream())
+                .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                .toList();
+
+        return ResponseEntity.ok(addStatus(200, new DiaryDTO(diary.get().getId(), diary.get().getCreatedDate(), diaryService.mergeParagraph(diary.get().getParagraphs()), imageUrl, emotionList)));
     }
 
 }

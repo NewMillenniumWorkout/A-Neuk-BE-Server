@@ -162,7 +162,6 @@ public class DiaryController {
             return ResponseEntity.badRequest().body(addStatus(401, "Diary가 존재하지 않습니다."));
 
         String imageUrl = s3Service.getImage(member.get(), diary.get());
-        log.info(imageUrl);
 
         FinalDiaryDTO finalDiaryDTO = new FinalDiaryDTO();
         finalDiaryDTO.setDiary_id(diaryId);

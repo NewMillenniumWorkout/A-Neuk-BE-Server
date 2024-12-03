@@ -6,6 +6,7 @@ import com.example.aneukbeserver.auth.jwt.JwtUtil;
 import com.example.aneukbeserver.domain.chatMessages.InitMessageDTO;
 import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.diary.DiaryDTO;
+import com.example.aneukbeserver.domain.diary.FinalDiaryDTO;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,6 +48,10 @@ public class HomeController {
 
     @Autowired
     private DiaryService diaryService;
+
+    @Autowired
+    private S3Service s3Service;
+
     @Operation(summary = "랜덤 일기", description = "랜덤 일기를 response 합니다")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
@@ -68,11 +73,15 @@ public class HomeController {
         if (diary.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(401, "일기가 존재하지 않습니다."));
 
-        DiaryDTO diaryDTO = new DiaryDTO();
-        diaryDTO.setDiary_id(diary.get().getId());
-        diaryDTO.setDate(diary.get().getCreatedDate());
-        diaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
-        return ResponseEntity.ok(addStatus(200, diaryDTO));
+        String imageUrl = s3Service.getImage(member.get(), diary.get());
+
+        FinalDiaryDTO finalDiaryDTO = new FinalDiaryDTO();
+        finalDiaryDTO.setDiary_id(diary.get().getId());
+        finalDiaryDTO.setDate(diary.get().getCreatedDate());
+        finalDiaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
+        finalDiaryDTO.setImageUrl(imageUrl);
+
+        return ResponseEntity.ok(addStatus(200, finalDiaryDTO));
 
     }
 }

@@ -11,14 +11,12 @@ import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,6 +59,7 @@ public class DiaryService {
 
     public String mergeParagraph(List<DiaryParagraph> paragraphs) {
         return paragraphs.stream()
+                .sorted(Comparator.comparing(DiaryParagraph::getOrderIndex))
                 .map(paragraph -> paragraph.getFinalContent() != null
                                 ? paragraph.getFinalContent()
                         : paragraph.getOriginalContent()

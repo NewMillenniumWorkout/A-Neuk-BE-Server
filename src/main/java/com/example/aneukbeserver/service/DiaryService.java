@@ -117,7 +117,7 @@ public class DiaryService {
         if (diaries.isEmpty()) {
             throw new EntityNotFoundException("Diary not found for member and date");
         }
-        Diary diary = diaries.get(0);
+        Diary diary = diaries.get(diaries.size() - 1);
 //        Diary diary = diaryRepository.findByMemberAndCreatedDate(member, localDate);
 
         String imageUrl = s3Service.getImage(member, diary);

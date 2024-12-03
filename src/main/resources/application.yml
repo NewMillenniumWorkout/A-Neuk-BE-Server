@@ -67,7 +67,6 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   redis:
-    host: localhost
     port: ${REDIS_PORT}
     password: ${REDIS_PASSWORD}
 

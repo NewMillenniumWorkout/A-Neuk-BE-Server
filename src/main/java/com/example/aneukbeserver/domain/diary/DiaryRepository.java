@@ -15,5 +15,5 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
 
     List<Diary> findAllByMember(Member member);
 
-    Diary findByMemberAndCreatedDate(Member member, LocalDate localDateTime);
+    List<Diary> findByMemberAndCreatedDate(Member member, LocalDate localDateTime); // 나중에 일기 하나만 생성되면 List 빼야함
 }

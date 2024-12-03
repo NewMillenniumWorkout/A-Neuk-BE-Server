@@ -163,13 +163,13 @@ public class DiaryController {
 
         String imageUrl = s3Service.getImage(member.get(), diary.get());
 
-        FinalDiaryDTO finalDiaryDTO = new FinalDiaryDTO();
-        finalDiaryDTO.setDiary_id(diaryId);
-        finalDiaryDTO.setDate(diary.get().getCreatedDate());
-        finalDiaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
-        finalDiaryDTO.setImageUrl(imageUrl);
+        DiaryDTO diaryDTO = new DiaryDTO();
+        diaryDTO.setDiary_id(diaryId);
+        diaryDTO.setDate(diary.get().getCreatedDate());
+        diaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
+        diaryDTO.setImageUrl(imageUrl);
 
-        return ResponseEntity.ok(addStatus(200, finalDiaryDTO));
+        return ResponseEntity.ok(addStatus(200, diaryDTO));
     }
 
 

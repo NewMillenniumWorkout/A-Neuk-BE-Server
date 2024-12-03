@@ -14,6 +14,7 @@ import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.service.ChatService;
 import com.example.aneukbeserver.service.DiaryService;
 import com.example.aneukbeserver.service.MemberService;
+import com.example.aneukbeserver.service.S3Service;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -53,6 +54,9 @@ public class GetDiaryController {
 
     @Autowired
     private DiaryService diaryService;
+
+    @Autowired
+    private S3Service s3Service;
 
     @Operation(summary = "전체 일기 가져오기", description = "사용자의 전체 일기를 가져옵니다")
     @ApiResponses(value = {
@@ -158,7 +162,10 @@ public class GetDiaryController {
         if (diary.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(402, "일기가 존재하지 않습니다."));
 
-        return ResponseEntity.ok(addStatus(200, new DiaryDTO(diary.get().getId(), diary.get().getCreatedDate(), diaryService.mergeParagraph(diary.get().getParagraphs()))));
+        String imageUrl = s3Service.getImage(member.get(), diary.get());
+
+
+        return ResponseEntity.ok(addStatus(200, new DiaryDTO(diary.get().getId(), diary.get().getCreatedDate(), diaryService.mergeParagraph(diary.get().getParagraphs()), imageUrl)));
     }
 
     @Operation(summary = "diaryId로 일기 가져오기", description = "다이어리 아이디로 일기 가져오기")
@@ -181,7 +188,9 @@ public class GetDiaryController {
         if (diary.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(402, "일기가 존재하지 않습니다."));
 
-        return ResponseEntity.ok(addStatus(200, new DiaryDTO(diary.get().getId(), diary.get().getCreatedDate(), diaryService.mergeParagraph(diary.get().getParagraphs()))));
+        String imageUrl = s3Service.getImage(member.get(), diary.get());
+
+        return ResponseEntity.ok(addStatus(200, new DiaryDTO(diary.get().getId(), diary.get().getCreatedDate(), diaryService.mergeParagraph(diary.get().getParagraphs()), imageUrl)));
     }
 
 }

@@ -7,6 +7,7 @@ import com.example.aneukbeserver.domain.diary.DiaryRepository;
 import com.example.aneukbeserver.domain.diary.*;
 import com.example.aneukbeserver.domain.diaryParagraph.DiaryParagraph;
 import com.example.aneukbeserver.domain.member.Member;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,10 @@ public class DiaryService {
 
     @Autowired
     private ChatRepository chatRepository;
+
+    @Autowired
+    private S3Service s3Service;
+
 
     public void saveDiary(Chat chat, Member member) {
         Diary diary = new Diary();
@@ -49,7 +54,6 @@ public class DiaryService {
     }
 
     public Optional<Diary> getDiary(Long diaryId) {
-
         return diaryRepository.findById(diaryId);
     }
 
@@ -67,11 +71,12 @@ public class DiaryService {
 
         diaries.forEach(
                 diary -> {
+                    String imageUrl = s3Service.getImage(member, diary);
                     DiaryDTO diaryDTO = new DiaryDTO();
                     diaryDTO.setDiary_id(diary.getId());
                     diaryDTO.setDate(diary.getCreatedDate());
                     diaryDTO.setContent(mergeParagraph(diary.getParagraphs()));
-
+                    diaryDTO.setImageUrl(imageUrl);
                     diaryDTOS.add(diaryDTO);
                 }
         );
@@ -101,11 +106,18 @@ public class DiaryService {
 
     public DiaryDTO getDateDiary(Member member, String date) {
         LocalDate localDate = LocalDate.parse(date);
-        Diary diary = diaryRepository.findByMemberAndCreatedDate(member, localDate);
+        List<Diary> diaries = diaryRepository.findByMemberAndCreatedDate(member, localDate);
 
-        DiaryDTO diaryDTO = new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()));
+        if (diaries.isEmpty()) {
+            throw new EntityNotFoundException("Diary not found for member and date");
+        }
+        Diary diary = diaries.get(0);
+//        Diary diary = diaryRepository.findByMemberAndCreatedDate(member, localDate);
 
-        return diaryDTO;
+        String imageUrl = s3Service.getImage(member, diary);
+
+
+        return new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()), imageUrl);
     }
 
     public Optional<Diary> getRandomDiary(Member member) {

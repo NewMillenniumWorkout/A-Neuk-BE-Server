@@ -3,10 +3,8 @@ package com.example.aneukbeserver.controller;
 
 import com.example.aneukbeserver.auth.dto.StatusResponseDto;
 import com.example.aneukbeserver.auth.jwt.JwtUtil;
-import com.example.aneukbeserver.domain.chatMessages.InitMessageDTO;
 import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.diary.DiaryDTO;
-import com.example.aneukbeserver.domain.diary.FinalDiaryDTO;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,9 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 import static com.example.aneukbeserver.auth.dto.StatusResponseDto.addStatus;
@@ -75,13 +71,13 @@ public class HomeController {
 
         String imageUrl = s3Service.getImage(member.get(), diary.get());
 
-        FinalDiaryDTO finalDiaryDTO = new FinalDiaryDTO();
-        finalDiaryDTO.setDiary_id(diary.get().getId());
-        finalDiaryDTO.setDate(diary.get().getCreatedDate());
-        finalDiaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
-        finalDiaryDTO.setImageUrl(imageUrl);
+        DiaryDTO diaryDTO = new DiaryDTO();
+        diaryDTO.setDiary_id(diary.get().getId());
+        diaryDTO.setDate(diary.get().getCreatedDate());
+        diaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
+        diaryDTO.setImageUrl(imageUrl);
 
-        return ResponseEntity.ok(addStatus(200, finalDiaryDTO));
+        return ResponseEntity.ok(addStatus(200, diaryDTO));
 
     }
 }

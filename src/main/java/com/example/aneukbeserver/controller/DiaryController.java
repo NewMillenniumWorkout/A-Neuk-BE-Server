@@ -8,7 +8,6 @@ import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
 import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.diary.DiaryAiResponseDTO;
 import com.example.aneukbeserver.domain.diary.DiaryDTO;
-import com.example.aneukbeserver.domain.diary.FinalDiaryDTO;
 import com.example.aneukbeserver.domain.diaryParagraph.*;
 import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.emotion.EmotionDTO;

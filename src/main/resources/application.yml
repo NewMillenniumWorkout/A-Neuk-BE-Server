@@ -71,6 +71,9 @@ spring:
     port: ${REDIS_PORT}
     password: ${REDIS_PASSWORD}
 
+  ai:
+    url: ${AI_SERVER_URL}
+
 
 server:
   port: 7010

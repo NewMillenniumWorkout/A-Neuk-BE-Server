@@ -73,11 +73,16 @@ public class DiaryService {
         diaries.forEach(
                 diary -> {
                     String imageUrl = s3Service.getImage(member, diary);
+                    List<Emotion> emotionList = diary.getParagraphs().stream()
+                            .flatMap(paragraph -> paragraph.getEmotionList().stream())
+                            .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                            .toList();
                     DiaryDTO diaryDTO = new DiaryDTO();
                     diaryDTO.setDiary_id(diary.getId());
                     diaryDTO.setDate(diary.getCreatedDate());
                     diaryDTO.setContent(mergeParagraph(diary.getParagraphs()));
                     diaryDTO.setImageUrl(imageUrl);
+                    diaryDTO.setEmotionList(emotionList);
                     diaryDTOS.add(diaryDTO);
                 }
         );

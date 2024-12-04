@@ -48,7 +48,7 @@ public class CollectionService {
         // 카테고리별
         Map<String, Long> categoryUsageStats = collections.stream()
                 .collect(Collectors.groupingBy(
-                        collection -> collection.getEmotion().getCategory(),
+                        collection -> collection.getEmotion().getCategory().toString(),
                         Collectors.counting()
                 ));
 

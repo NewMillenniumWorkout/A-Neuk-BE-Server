@@ -165,6 +165,7 @@ public class GetDiaryController {
         List<Emotion> emotionList = diary.get().getParagraphs().stream()
                 .flatMap(paragraph -> paragraph.getEmotionList().stream())
                 .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                .distinct()
                 .toList();
 
 
@@ -195,6 +196,7 @@ public class GetDiaryController {
         List<Emotion> emotionList = diary.get().getParagraphs().stream()
                 .flatMap(paragraph -> paragraph.getEmotionList().stream())
                 .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                .distinct()
                 .toList();
 
         return ResponseEntity.ok(addStatus(200, new DiaryDTO(diary.get().getId(), diary.get().getCreatedDate(), diaryService.mergeParagraph(diary.get().getParagraphs()), diary.get().getImageUrl(), emotionList)));

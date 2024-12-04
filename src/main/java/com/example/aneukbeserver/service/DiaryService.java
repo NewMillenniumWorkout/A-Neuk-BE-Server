@@ -74,6 +74,7 @@ public class DiaryService {
                     List<Emotion> emotionList = diary.getParagraphs().stream()
                             .flatMap(paragraph -> paragraph.getEmotionList().stream())
                             .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                            .distinct()
                             .toList();
                     DiaryDTO diaryDTO = new DiaryDTO();
                     diaryDTO.setDiary_id(diary.getId());
@@ -122,6 +123,7 @@ public class DiaryService {
         List<Emotion> emotionList = diary.getParagraphs().stream()
                 .flatMap(paragraph -> paragraph.getEmotionList().stream())
                 .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                .distinct()
                 .toList();
 
         return new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()), diary.getImageUrl(), emotionList);

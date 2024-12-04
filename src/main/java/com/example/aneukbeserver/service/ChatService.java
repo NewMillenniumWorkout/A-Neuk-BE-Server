@@ -76,7 +76,6 @@ public class ChatService {
         diary.setMember(member);
         diaryRepository.save(diary);
 
-
         Chat newChat = new Chat();
         newChat.setMember(member);
         newChat.setCreatedDate(LocalDateTime.now());

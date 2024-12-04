@@ -137,5 +137,10 @@ public class DiaryService {
         return Optional.of(diaries.get(new Random().nextInt(diaries.size())));
     }
 
+    public void saveImage(Diary diary, String image) {
+        diary.setImageUrl(image);
+        diaryRepository.save(diary);
+    }
+
 }
 

@@ -193,7 +193,9 @@ public class ChatController {
         if (image != null) { // 파일 업로드한 경우에만
             try {
                 fileName = s3Service.upload(image, userEmail + "/" + diary.getId()); // images 디렉토리에 저장
-                System.out.println("fileName = " + fileName);
+//                System.out.println("fileName = " + fileName);
+                String imageUrl = s3Service.getImage(member.get(), diary);
+                diaryService.saveImage(diary, imageUrl);
             } catch (IOException e) {
                 return ResponseEntity.badRequest().body(addStatus(500, "Image Upload Failed : " + e.getMessage()));
             }

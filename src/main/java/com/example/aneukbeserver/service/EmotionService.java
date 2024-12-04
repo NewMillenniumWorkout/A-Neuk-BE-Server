@@ -1,13 +1,15 @@
 package com.example.aneukbeserver.service;
 
-import com.example.aneukbeserver.domain.emotion.Emotion;
-import com.example.aneukbeserver.domain.emotion.EmotionDTO;
-import com.example.aneukbeserver.domain.emotion.EmotionRepository;
-import com.example.aneukbeserver.domain.emotion.EmotionResponseDTO;
+import com.example.aneukbeserver.domain.emotion.*;
+import com.example.aneukbeserver.domain.member.Member;
+import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
+import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,6 +18,9 @@ import java.util.stream.Collectors;
 public class EmotionService {
     @Autowired
     private EmotionRepository emotionRepository;
+
+    @Autowired
+    private SelectedEmotionRepository selectedEmotionRepository;
 
     public EmotionResponseDTO getEmotionInfo(Long id) {
         Optional<Emotion> emotion = emotionRepository.findById(id);
@@ -58,4 +63,17 @@ public class EmotionService {
     }
 
 
+    public Map<String, Long> get30daysEmotionCategory(Member member) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(30);
+
+        List<SelectedEmotion> selectedEmotions = selectedEmotionRepository.findByDiaryParagraph_Diary_MemberAndDiaryParagraph_Diary_CreatedDateBetween(member, startDate, endDate);
+
+        return selectedEmotions.stream()
+                .map(SelectedEmotion::getEmotion)
+                .collect(Collectors.groupingBy(
+                        Emotion::getCategory,
+                        Collectors.counting()
+                ));
+    }
 }

@@ -8,5 +8,5 @@ import java.util.Optional;
 public interface EmotionRepository extends JpaRepository<Emotion, Long> {
     Optional<Emotion> findByTitle(String title);
 
-    long countByCategory(String category);
+    long countByCategory(EmotionCategory category);
 }

@@ -8,10 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -67,13 +64,22 @@ public class EmotionService {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(30);
 
+        // 감정 데이터 가져오기
         List<SelectedEmotion> selectedEmotions = selectedEmotionRepository.findByDiaryParagraph_Diary_MemberAndDiaryParagraph_Diary_CreatedDateBetween(member, startDate, endDate);
 
-        return selectedEmotions.stream()
+        // 감정 데이터를 카테고리별로 그룹화
+        Map<String, Long> stats = selectedEmotions.stream()
                 .map(SelectedEmotion::getEmotion)
                 .collect(Collectors.groupingBy(
-                        Emotion::getCategory,
+                        emotion -> emotion.getCategory().name(), // Enum -> 문자열
                         Collectors.counting()
                 ));
+
+        // 모든 카테고리를 0으로 초기화한 뒤 기존 결과와 병합
+        Map<String, Long> result = new HashMap<>();
+        EmotionCategory.getAllCategories().forEach(category -> result.put(category, 0L)); // 없는 카테고리를 0으로 초기화
+        result.putAll(stats); // 기존 결과 병합
+
+        return result;
     }
 }

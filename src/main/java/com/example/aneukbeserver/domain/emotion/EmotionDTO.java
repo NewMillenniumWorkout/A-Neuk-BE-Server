@@ -6,7 +6,7 @@ import lombok.Data;
 public class EmotionDTO {
     private Long id;
     private String title;
-    private String category;
+    private EmotionCategory category;
     private String example;
     private String description;
 }

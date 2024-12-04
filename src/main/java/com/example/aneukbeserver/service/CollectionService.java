@@ -4,6 +4,7 @@ import com.example.aneukbeserver.domain.collection.Collection;
 import com.example.aneukbeserver.domain.collection.CollectionRepository;
 import com.example.aneukbeserver.domain.diaryParagraph.DiaryParagraph;
 import com.example.aneukbeserver.domain.emotion.Emotion;
+import com.example.aneukbeserver.domain.emotion.EmotionCategory;
 import com.example.aneukbeserver.domain.emotion.EmotionRepository;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
@@ -48,15 +49,22 @@ public class CollectionService {
         // 카테고리별
         Map<String, Long> categoryUsageStats = collections.stream()
                 .collect(Collectors.groupingBy(
-                        collection -> collection.getEmotion().getCategory(),
+                        collection -> collection.getEmotion().getCategory().toString(),
                         Collectors.counting()
                 ));
 
+        // 모든 카테고리를 0으로 초기화한 뒤 기존 결과와 병합
+        Map<String, Long> result = new HashMap<>();
+        EmotionCategory.getAllCategories().forEach(category -> result.put(category, 0L)); // 없는 카테고리를 0으로 초기화
+        result.putAll(categoryUsageStats); // 기존 결과 병합
+
         Map<String, Object> categoryStats = new HashMap<>();
-        for (Map.Entry<String, Long> entry : categoryUsageStats.entrySet()) {
+        for (Map.Entry<String, Long> entry : result.entrySet()) {
             String category = entry.getKey();
             long count = entry.getValue();
-            long totalInCategory = emotionRepository.countByCategory(category);
+
+            EmotionCategory categoryEnum = EmotionCategory.valueOf(category);
+            long totalInCategory = emotionRepository.countByCategory(categoryEnum);
 
             categoryStats.put(category,  Map.of(
                     "usedCount", count,

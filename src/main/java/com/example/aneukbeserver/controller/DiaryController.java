@@ -71,8 +71,6 @@ public class DiaryController {
     @Autowired
     private SelectedEmotionService selectedEmotionService;
 
-    @Autowired
-    private S3Service s3Service;
 
     @Value("${spring.ai.url}")
     private String aiUrl;
@@ -166,8 +164,6 @@ public class DiaryController {
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
         if (diary.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(401, "Diary가 존재하지 않습니다."));
-
-//        String imageUrl = s3Service.getImage(member.get(), diary.get());
 
         List<Emotion> emotionList = diary.get().getParagraphs().stream()
                 .flatMap(paragraph -> paragraph.getEmotionList().stream())

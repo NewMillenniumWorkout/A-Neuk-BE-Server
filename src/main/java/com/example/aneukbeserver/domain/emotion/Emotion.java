@@ -15,8 +15,9 @@ public class Emotion {
     @Column
     private String title;
 
-    @Column
-    private String category;
+    @Enumerated(EnumType.STRING) // Enum 값을 문자열로 저장
+    @Column(nullable = false)
+    private EmotionCategory category;
 
     @Column
     private String description;

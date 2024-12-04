@@ -5,12 +5,14 @@ import com.example.aneukbeserver.auth.jwt.JwtUtil;
 import com.example.aneukbeserver.domain.chat.Chat;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessageDTO;
 import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
+import com.example.aneukbeserver.domain.collection.Collection;
 import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.diary.DiaryAiResponseDTO;
 import com.example.aneukbeserver.domain.diary.DiaryDTO;
 import com.example.aneukbeserver.domain.diaryParagraph.*;
 import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.emotion.EmotionDTO;
+import com.example.aneukbeserver.domain.emotion.SaveEmotionDTO;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
 
@@ -70,6 +72,9 @@ public class DiaryController {
 
     @Autowired
     private SelectedEmotionService selectedEmotionService;
+
+    @Autowired
+    private CollectionService collectionService;
 
 
     @Value("${spring.ai.url}")
@@ -180,8 +185,39 @@ public class DiaryController {
         return ResponseEntity.ok(addStatus(200, diaryDTO));
     }
 
+    @Operation(summary = "감정 선택 후 저장", description = "각 문단별로 감정 선택을 후 감정들을 저장합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "500", description = "서버 에러, 관리자에게 문의 바랍니다."),
+            @ApiResponse(responseCode = "400", description = "사용자가 존재하지 않습니다."),
+            @ApiResponse(responseCode = "401", description = "채팅이 존재하지 않습니다.")
 
-    @Operation(summary = "감정 선택 후 문장 바뀜", description = "각 문단별로 감정 선택을 통해 문단을 재구성하여 response 합니다.")
+    })
+    @PostMapping("/emotion/save")
+    public ResponseEntity<StatusResponseDto> saveParagraphEmotion(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestBody SaveEmotionDTO request) {
+        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
+        Optional<Member> member = memberService.findByEmail(userEmail);
+        log.info(String.valueOf(request));
+        Optional<DiaryParagraph> diaryParagraph = diaryParagraphService.findByParagraphId(request.getDiary_id(), request.getOrder_index());
+
+        if (member.isEmpty())
+            return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
+        if (diaryParagraph.isEmpty())
+            return ResponseEntity.badRequest().body(addStatus(401, "Paragraph이 존재하지 않습니다."));
+
+        List<String> emotion_list = request.getEmotions();
+
+        List<Emotion> emotionList = emotionService.getEmotionObjectsByNames(emotion_list);
+
+        selectedEmotionService.saveSelectedEmotions(diaryParagraph.get(), emotionList);
+        collectionService.saveEmotionCollection(emotionList, member.get());
+
+        return ResponseEntity.ok().body(addStatus(200, "성공적으로 저장되었습니다."));
+    }
+
+
+
+        @Operation(summary = "감정 선택 후 문장 바뀜", description = "각 문단별로 감정 선택을 통해 문단을 재구성하여 response 합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "500", description = "서버 에러, 관리자에게 문의 바랍니다."),
@@ -203,14 +239,10 @@ public class DiaryController {
 
         List<String> emotion_list = request.getEmotions();
 
-        List<Emotion> emotionList = emotionService.getEmotionObjectsByNames(emotion_list);
-
         Map<String, Object> aiRequest = Map.of(
                 "original_content", request.getOriginal_content(),
                 "emotion_list", emotion_list
         );
-
-        selectedEmotionService.saveSelectedEmotions(diaryParagraph.get(), emotionList);
 
         try {
             HttpHeaders headers = new HttpHeaders();

@@ -1,7 +1,10 @@
 package com.example.aneukbeserver.service;
 
+import com.example.aneukbeserver.domain.collection.Collection;
+import com.example.aneukbeserver.domain.collection.CollectionRepository;
 import com.example.aneukbeserver.domain.diaryParagraph.DiaryParagraph;
 import com.example.aneukbeserver.domain.emotion.Emotion;
+import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
 import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotionRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SelectedEmotionService {
@@ -25,6 +29,8 @@ public class SelectedEmotionService {
             selectedEmotion.setEmotion(emotion);
             selectedEmotion.setDiaryParagraph(diaryParagraph);
             selectedEmotionRepository.save(selectedEmotion);
+
+
         }
     }
 

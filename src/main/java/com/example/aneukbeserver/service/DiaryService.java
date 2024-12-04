@@ -27,10 +27,6 @@ public class DiaryService {
     @Autowired
     private ChatRepository chatRepository;
 
-    @Autowired
-    private S3Service s3Service;
-
-
     public void saveDiary(Chat chat, Member member) {
         Diary diary = new Diary();
         diary.setChat(chat);
@@ -72,7 +68,6 @@ public class DiaryService {
 
         diaries.forEach(
                 diary -> {
-                    String imageUrl = s3Service.getImage(member, diary);
                     List<Emotion> emotionList = diary.getParagraphs().stream()
                             .flatMap(paragraph -> paragraph.getEmotionList().stream())
                             .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
@@ -81,7 +76,7 @@ public class DiaryService {
                     diaryDTO.setDiary_id(diary.getId());
                     diaryDTO.setDate(diary.getCreatedDate());
                     diaryDTO.setContent(mergeParagraph(diary.getParagraphs()));
-                    diaryDTO.setImageUrl(imageUrl);
+                    diaryDTO.setImageUrl(diary.getImageUrl());
                     diaryDTO.setEmotionList(emotionList);
                     diaryDTOS.add(diaryDTO);
                 }
@@ -120,14 +115,12 @@ public class DiaryService {
         Diary diary = diaries.get(diaries.size() - 1);
 //        Diary diary = diaryRepository.findByMemberAndCreatedDate(member, localDate);
 
-        String imageUrl = s3Service.getImage(member, diary);
-
         List<Emotion> emotionList = diary.getParagraphs().stream()
                 .flatMap(paragraph -> paragraph.getEmotionList().stream())
                 .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
                 .toList();
 
-        return new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()), imageUrl, emotionList);
+        return new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()), diary.getImageUrl(), emotionList);
     }
 
     public Optional<Diary> getRandomDiary(Member member) {
@@ -135,6 +128,11 @@ public class DiaryService {
         if(diaries.isEmpty()) return Optional.empty();
 
         return Optional.of(diaries.get(new Random().nextInt(diaries.size())));
+    }
+
+    public void saveImage(Diary diary, String image) {
+        diary.setImageUrl(image);
+        diaryRepository.save(diary);
     }
 
 }

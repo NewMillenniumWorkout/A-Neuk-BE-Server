@@ -173,6 +173,7 @@ public class DiaryController {
         List<Emotion> emotionList = diary.get().getParagraphs().stream()
                 .flatMap(paragraph -> paragraph.getEmotionList().stream())
                 .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                .distinct()
                 .toList();
 
         DiaryDTO diaryDTO = new DiaryDTO();

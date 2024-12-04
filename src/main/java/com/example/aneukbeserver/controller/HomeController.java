@@ -5,7 +5,9 @@ import com.example.aneukbeserver.auth.dto.StatusResponseDto;
 import com.example.aneukbeserver.auth.jwt.JwtUtil;
 import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.diary.DiaryDTO;
+import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.member.Member;
+import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
 import com.example.aneukbeserver.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.example.aneukbeserver.auth.dto.StatusResponseDto.addStatus;
@@ -69,13 +72,18 @@ public class HomeController {
         if (diary.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(401, "일기가 존재하지 않습니다."));
 
-        String imageUrl = s3Service.getImage(member.get(), diary.get());
+        List<Emotion> emotionList = diary.get().getParagraphs().stream()
+                .flatMap(paragraph -> paragraph.getEmotionList().stream())
+                .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                .distinct()
+                .toList();
 
         DiaryDTO diaryDTO = new DiaryDTO();
         diaryDTO.setDiary_id(diary.get().getId());
         diaryDTO.setDate(diary.get().getCreatedDate());
         diaryDTO.setContent(diaryService.mergeParagraph(diary.get().getParagraphs()));
-        diaryDTO.setImageUrl(imageUrl);
+        diaryDTO.setEmotionList(emotionList);
+        diaryDTO.setImageUrl(diary.get().getImageUrl());
 
         return ResponseEntity.ok(addStatus(200, diaryDTO));
 

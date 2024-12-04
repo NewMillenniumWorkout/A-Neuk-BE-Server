@@ -10,6 +10,8 @@ import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
+import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class DiaryService {
     @Autowired
@@ -28,7 +31,7 @@ public class DiaryService {
     private ChatRepository chatRepository;
 
     public void saveDiary(Chat chat, Member member) {
-        Diary diary = new Diary();
+        Diary diary = chat.getDiary();
         diary.setChat(chat);
         diary.setMember(member);
         diary.setChat(chat);
@@ -112,6 +115,7 @@ public class DiaryService {
         if (diaries.isEmpty()) {
             throw new EntityNotFoundException("Diary not found for member and date");
         }
+
         Diary diary = diaries.get(diaries.size() - 1);
 //        Diary diary = diaryRepository.findByMemberAndCreatedDate(member, localDate);
 

@@ -84,7 +84,7 @@ public class DiaryController {
 
     })
     @PostMapping("/emotion/list")
-    public ResponseEntity<StatusResponseDto> sendInitMessage(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam("chatId") Long chatId) {
+    public ResponseEntity<StatusResponseDto> sendInitDiary(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam("chatId") Long chatId) {
         String userEmail = jwtUtil.getEmail(accessToken.substring(7));
         Optional<Member> member = memberService.findByEmail(userEmail);
         Optional<Chat> chat = chatService.getChatById(chatId);

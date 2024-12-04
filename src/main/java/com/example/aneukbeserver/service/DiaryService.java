@@ -115,7 +115,8 @@ public class DiaryService {
         if (diaries.isEmpty()) {
             throw new EntityNotFoundException("Diary not found for member and date");
         }
-        Diary diary = diaries.get(diaries.size()-1);
+
+        Diary diary = diaries.get(diaries.size() - 1);
 //        Diary diary = diaryRepository.findByMemberAndCreatedDate(member, localDate);
 
         List<Emotion> emotionList = diary.getParagraphs().stream()

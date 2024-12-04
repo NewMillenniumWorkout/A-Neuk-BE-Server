@@ -104,7 +104,7 @@ public class ChatController {
         if (chatTotalDTO.isEmpty())
             return ResponseEntity.badRequest().body(addStatus(401, "채팅이 존재하지 않습니다."));
 
-        return ResponseEntity.ok(addStatus(200, chatService.getTotalChat(chatId)));
+        return ResponseEntity.ok(addStatus(200, chatTotalDTO));
 
     }
 

@@ -62,7 +62,7 @@ public class DiaryService {
                 .map(paragraph -> paragraph.getFinalContent() != null
                                 ? paragraph.getFinalContent()
                         : paragraph.getOriginalContent()
-                ).collect(Collectors.joining());
+                ).collect(Collectors.joining(" "));
     }
 
     public List<DiaryDTO> getAllDiary(Member member) {

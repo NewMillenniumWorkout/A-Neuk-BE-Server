@@ -32,27 +32,27 @@ public class ChatService {
 
 
     private static final List<String> greetings = Arrays.asList(
-            "오늘 하루는 어땠어",
-            "오늘 어떤 일이 가장 즐거웠어",
-            "오늘 누구 만났어",
-            "오늘 어디 갔었어",
-            "오늘 기분 좋은 일 있었어",
-            "오늘 무슨 일 있었어",
-            "오늘 어떤 일로 웃었어",
-            "오늘 힘들었던 일 있었어",
-            "오늘 어디서 시간을 보냈어",
-            "오늘 특별한 일이 있었어",
-            "오늘 누구랑 이야기했어",
-            "오늘 무슨 생각 많이 했어",
-            "오늘 날씨 어땠어",
-            "오늘 기분 좋을만한 일이 있었어"
+            "오늘 하루는 어땠어?",
+            "오늘 어떤 일이 가장 즐거웠어?",
+            "오늘 누구 만났어?",
+            "오늘 어디 갔었어?",
+            "오늘 기분 좋은 일 있었어?",
+            "오늘 무슨 일 있었어?",
+            "오늘 어떤 일로 웃었어?",
+            "오늘 힘들었던 일 있었어?",
+            "오늘 어디서 시간을 보냈어?",
+            "오늘 특별한 일이 있었어?",
+            "오늘 누구랑 이야기했어?",
+            "오늘 무슨 생각 많이 했어?",
+            "오늘 날씨 어땠어?",
+            "오늘 기분 좋을만한 일이 있었어?"
     );
 
     private static final int MIN_MESSAGE_NUM = 5;
 
     private String randomGreeting() {
         Random random = new Random();
-        return greetings.get(random.nextInt(greetings.size())) + (random.nextBoolean() ? "?" : "!");
+        return greetings.get(random.nextInt(greetings.size()));
     }
 
     @Transactional

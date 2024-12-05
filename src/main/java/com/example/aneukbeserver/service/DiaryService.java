@@ -69,7 +69,9 @@ public class DiaryService {
         List<Diary> diaries= diaryRepository.findAllByMember(member);
         List<DiaryDTO> diaryDTOS = new ArrayList<>();
 
-        diaries.forEach(
+        diaries.stream()
+                .filter(diary -> diary.getImageUrl() != null)
+                .forEach(
                 diary -> {
                     List<Emotion> emotionList = diary.getParagraphs().stream()
                             .flatMap(paragraph -> paragraph.getEmotionList().stream())
@@ -94,7 +96,9 @@ public class DiaryService {
 
         List<MonthDiaryDTO> monthDiaries = new ArrayList<>();
 
-        diaries.forEach(
+        diaries.stream()
+                .filter(diary -> diary.getImageUrl() != null)
+                .forEach(
                 diary ->
                 {
                     String diaryMonth = diary.getCreatedDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));
@@ -111,7 +115,9 @@ public class DiaryService {
 
     public DiaryDTO getDateDiary(Member member, String date) {
         LocalDate localDate = LocalDate.parse(date);
-        List<Diary> diaries = diaryRepository.findByMemberAndCreatedDate(member, localDate);
+        List<Diary> diaries = diaryRepository.findByMemberAndCreatedDate(member, localDate).stream()
+                .filter(diary -> diary.getImageUrl() != null) // imageUrl이 null이 아닌 경우만 포함
+                .toList();
 
         if (diaries.isEmpty()) {
             throw new EntityNotFoundException("Diary not found for member and date");
@@ -130,7 +136,10 @@ public class DiaryService {
     }
 
     public Optional<Diary> getRandomDiary(Member member) {
-        List<Diary> diaries = diaryRepository.findAllByMember(member);
+        List<Diary> diaries = diaryRepository.findAllByMember(member)
+                .stream()
+                .filter(diary -> diary.getImageUrl() != null) // imageUrl이 null이 아닌 경우만 포함
+                .toList();
         if(diaries.isEmpty()) return Optional.empty();
 
         return Optional.of(diaries.get(new Random().nextInt(diaries.size())));

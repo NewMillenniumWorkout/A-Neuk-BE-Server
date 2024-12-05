@@ -1,21 +1,23 @@
 package com.example.aneukbeserver.service;
 
-import com.example.aneukbeserver.domain.emotion.Emotion;
-import com.example.aneukbeserver.domain.emotion.EmotionDTO;
-import com.example.aneukbeserver.domain.emotion.EmotionRepository;
-import com.example.aneukbeserver.domain.emotion.EmotionResponseDTO;
+import com.example.aneukbeserver.domain.emotion.*;
+import com.example.aneukbeserver.domain.member.Member;
+import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
+import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class EmotionService {
     @Autowired
     private EmotionRepository emotionRepository;
+
+    @Autowired
+    private SelectedEmotionRepository selectedEmotionRepository;
 
     public EmotionResponseDTO getEmotionInfo(Long id) {
         Optional<Emotion> emotion = emotionRepository.findById(id);
@@ -58,4 +60,26 @@ public class EmotionService {
     }
 
 
+    public Map<String, Long> get30daysEmotionCategory(Member member) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(30);
+
+        // 감정 데이터 가져오기
+        List<SelectedEmotion> selectedEmotions = selectedEmotionRepository.findByDiaryParagraph_Diary_MemberAndDiaryParagraph_Diary_CreatedDateBetween(member, startDate, endDate);
+
+        // 감정 데이터를 카테고리별로 그룹화
+        Map<String, Long> stats = selectedEmotions.stream()
+                .map(SelectedEmotion::getEmotion)
+                .collect(Collectors.groupingBy(
+                        emotion -> emotion.getCategory().name(), // Enum -> 문자열
+                        Collectors.counting()
+                ));
+
+        // 모든 카테고리를 0으로 초기화한 뒤 기존 결과와 병합
+        Map<String, Long> result = new HashMap<>();
+        EmotionCategory.getAllCategories().forEach(category -> result.put(category, 0L)); // 없는 카테고리를 0으로 초기화
+        result.putAll(stats); // 기존 결과 병합
+
+        return result;
+    }
 }

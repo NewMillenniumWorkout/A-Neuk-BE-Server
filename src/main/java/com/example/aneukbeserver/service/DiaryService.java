@@ -10,6 +10,8 @@ import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
+import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class DiaryService {
     @Autowired
@@ -27,12 +30,8 @@ public class DiaryService {
     @Autowired
     private ChatRepository chatRepository;
 
-    @Autowired
-    private S3Service s3Service;
-
-
     public void saveDiary(Chat chat, Member member) {
-        Diary diary = new Diary();
+        Diary diary = chat.getDiary();
         diary.setChat(chat);
         diary.setMember(member);
         diary.setChat(chat);
@@ -63,25 +62,27 @@ public class DiaryService {
                 .map(paragraph -> paragraph.getFinalContent() != null
                                 ? paragraph.getFinalContent()
                         : paragraph.getOriginalContent()
-                ).collect(Collectors.joining());
+                ).collect(Collectors.joining(" "));
     }
 
     public List<DiaryDTO> getAllDiary(Member member) {
         List<Diary> diaries= diaryRepository.findAllByMember(member);
         List<DiaryDTO> diaryDTOS = new ArrayList<>();
 
-        diaries.forEach(
+        diaries.stream()
+                .filter(diary -> diary.getImageUrl() != null)
+                .forEach(
                 diary -> {
-                    String imageUrl = s3Service.getImage(member, diary);
                     List<Emotion> emotionList = diary.getParagraphs().stream()
                             .flatMap(paragraph -> paragraph.getEmotionList().stream())
                             .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                            .distinct()
                             .toList();
                     DiaryDTO diaryDTO = new DiaryDTO();
                     diaryDTO.setDiary_id(diary.getId());
                     diaryDTO.setDate(diary.getCreatedDate());
                     diaryDTO.setContent(mergeParagraph(diary.getParagraphs()));
-                    diaryDTO.setImageUrl(imageUrl);
+                    diaryDTO.setImageUrl(diary.getImageUrl());
                     diaryDTO.setEmotionList(emotionList);
                     diaryDTOS.add(diaryDTO);
                 }
@@ -95,7 +96,9 @@ public class DiaryService {
 
         List<MonthDiaryDTO> monthDiaries = new ArrayList<>();
 
-        diaries.forEach(
+        diaries.stream()
+                .filter(diary -> diary.getImageUrl() != null)
+                .forEach(
                 diary ->
                 {
                     String diaryMonth = diary.getCreatedDate().format(DateTimeFormatter.ofPattern("yyyy-MM"));
@@ -112,29 +115,39 @@ public class DiaryService {
 
     public DiaryDTO getDateDiary(Member member, String date) {
         LocalDate localDate = LocalDate.parse(date);
-        List<Diary> diaries = diaryRepository.findByMemberAndCreatedDate(member, localDate);
+        List<Diary> diaries = diaryRepository.findByMemberAndCreatedDate(member, localDate).stream()
+                .filter(diary -> diary.getImageUrl() != null) // imageUrl이 null이 아닌 경우만 포함
+                .toList();
 
         if (diaries.isEmpty()) {
             throw new EntityNotFoundException("Diary not found for member and date");
         }
+
         Diary diary = diaries.get(diaries.size() - 1);
 //        Diary diary = diaryRepository.findByMemberAndCreatedDate(member, localDate);
-
-        String imageUrl = s3Service.getImage(member, diary);
 
         List<Emotion> emotionList = diary.getParagraphs().stream()
                 .flatMap(paragraph -> paragraph.getEmotionList().stream())
                 .map(SelectedEmotion::getEmotion) // Emotion 객체를 반환
+                .distinct()
                 .toList();
 
-        return new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()), imageUrl, emotionList);
+        return new DiaryDTO(diary.getId(), localDate, mergeParagraph(diary.getParagraphs()), diary.getImageUrl(), emotionList);
     }
 
     public Optional<Diary> getRandomDiary(Member member) {
-        List<Diary> diaries = diaryRepository.findAllByMember(member);
+        List<Diary> diaries = diaryRepository.findAllByMember(member)
+                .stream()
+                .filter(diary -> diary.getImageUrl() != null) // imageUrl이 null이 아닌 경우만 포함
+                .toList();
         if(diaries.isEmpty()) return Optional.empty();
 
         return Optional.of(diaries.get(new Random().nextInt(diaries.size())));
+    }
+
+    public void saveImage(Diary diary, String image) {
+        diary.setImageUrl(image);
+        diaryRepository.save(diary);
     }
 
 }

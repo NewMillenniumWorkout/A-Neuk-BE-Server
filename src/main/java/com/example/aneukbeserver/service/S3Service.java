@@ -61,6 +61,7 @@ public class S3Service {
         log.info("Uploading file: {} to bucket: {} with key: {}", uploadFile.getAbsolutePath(), bucket, fileName);
         amazonS3.putObject(
                 new PutObjectRequest(bucket, fileName, uploadFile)
+                        .withCannedAcl(CannedAccessControlList.PublicRead)
         );
         log.info("Upload successful. Generating URL...");
         return amazonS3.getUrl(bucket, fileName).toString();

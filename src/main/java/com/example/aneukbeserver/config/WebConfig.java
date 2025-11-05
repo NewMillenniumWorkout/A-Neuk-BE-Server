@@ -9,11 +9,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000")  // 정확한 클라이언트 오리진 지정
-                .allowedOrigins("http://43.203.232.54:2518")
-                .allowedOrigins("https://aneuk-api.dev-lr.com")
-                .allowedOrigins("https://aneuk.dev-lr.com")
-                .allowedMethods("GET", "POST", "OPTIONS")
+                .allowedOrigins(
+                        "http://localhost:3000",
+                        "http://43.203.232.54:2518",
+                        "https://aneuk-api.dev-lr.com",
+                        "https://aneuk.dev-lr.com"
+                )
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowCredentials(true)
                 .allowedHeaders("*")
                 .maxAge(3600);

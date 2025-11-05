@@ -12,11 +12,16 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("http://localhost:3000"); // 허용할 출처
-        configuration.addAllowedOrigin("http://43.203.232.54:2518"); // 허용할 출처
-        configuration.addAllowedOrigin("https://aneuk-api.dev-lr.com"); // 허용할 출처
-        configuration.addAllowedOrigin("https://aneuk.dev-lr.com"); // 허용할 출처
-        configuration.addAllowedMethod("*");
+        configuration.addAllowedOrigin("http://localhost:3000");
+        configuration.addAllowedOrigin("http://43.203.232.54:2518");
+        configuration.addAllowedOrigin("https://aneuk-api.dev-lr.com");
+        configuration.addAllowedOrigin("https://aneuk.dev-lr.com");
+        configuration.addAllowedMethod("GET");
+        configuration.addAllowedMethod("POST");
+        configuration.addAllowedMethod("PUT");
+        configuration.addAllowedMethod("PATCH");
+        configuration.addAllowedMethod("DELETE");
+        configuration.addAllowedMethod("OPTIONS");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);
 

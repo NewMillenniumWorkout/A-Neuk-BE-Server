@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Slf4j
@@ -68,14 +69,20 @@ public class S3Service {
     }
 
     private Optional<File> convert(MultipartFile file) throws IOException {
-        File convertFile = new File(file.getOriginalFilename()); // 업로드한 파일 이름
-        if (convertFile.createNewFile()) {
-            try (FileOutputStream fos = new FileOutputStream(convertFile)) {
-                fos.write(file.getBytes());
-            }
-            return Optional.of(convertFile);
+        // 원본 파일명 가져오기
+        String originalFilename = file.getOriginalFilename();
+        // UUID를 사용해서 고유한 파일명 생성
+        String uuid = UUID.randomUUID().toString();
+        String uniqueFilename = uuid + "_" + originalFilename;
+
+        // 시스템 임시 디렉토리에 파일 생성 (Docker 컨테이너에서도 안전)
+        File convertFile = new File(System.getProperty("java.io.tmpdir"), uniqueFilename);
+
+        try (FileOutputStream fos = new FileOutputStream(convertFile)) {
+            fos.write(file.getBytes());
         }
-        return Optional.empty();
+
+        return Optional.of(convertFile);
     }
 
 

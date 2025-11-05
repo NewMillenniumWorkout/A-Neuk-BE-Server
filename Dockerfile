@@ -20,15 +20,12 @@ FROM eclipse-temurin:17-jdk-jammy
 # 작업 디렉토리 생성
 WORKDIR /app
 
-# Java 환경 변수 명시적 설정
-ENV JAVA_HOME=/opt/java/openjdk
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
-
 # 빌드 결과 복사
 COPY --from=builder /app/build/libs/*.jar /app/app.jar
 
 # 포트 노출
 EXPOSE 7010
 
-# 애플리케이션 실행 (shell form 사용)
-CMD ["java", "-jar", "/app/app.jar"]
+# 기존 ENTRYPOINT 리셋하고 Java 전체 경로로 실행
+ENTRYPOINT []
+CMD ["/opt/java/openjdk/bin/java", "-jar", "/app/app.jar"]

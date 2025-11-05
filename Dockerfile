@@ -15,7 +15,7 @@ RUN chmod +x ./gradlew
 RUN ./gradlew bootJar
 
 # Stage 2: Runtime
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:17-jdk-jammy
 
 # 작업 디렉토리 생성
 WORKDIR /app

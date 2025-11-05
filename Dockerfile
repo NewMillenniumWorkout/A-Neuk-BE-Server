@@ -1,5 +1,5 @@
-# 1. Java 17의 OpenJDK 이미지 사용
-FROM openjdk:17-jdk-slim
+# 1. Java 17의 Eclipse Temurin 이미지 사용 (OpenJDK 공식 후속)
+FROM eclipse-temurin:17-jdk-jammy
 
 # 2. 작업 디렉토리 생성 및 설정
 WORKDIR /app

@@ -10,7 +10,10 @@ spring:
 
   jwt:
     secret: ${JWT_SECRET}
-    success-redirect: ${AUTH_SUCCESS_REDIRECT}
+    success-redirect:
+      google: ${AUTH_SUCCESS_REDIRECT_GOOGLE}
+      kakao: ${AUTH_SUCCESS_REDIRECT_KAKAO}
+      naver: ${AUTH_SUCCESS_REDIRECT_NAVER}
 
   security:
     oauth2:

@@ -38,6 +38,7 @@ public class OAuth2Attribute {
     private static OAuth2Attribute ofGoogle(String provider, String attributeKey, Map<String, Object> attributes) {
         return OAuth2Attribute.builder()
                 .email((String) attributes.get("email"))
+                .name((String) attributes.get("name"))
                 .provider(provider)
                 .attributes(attributes)
                 .attributeKey(attributeKey)
@@ -49,10 +50,11 @@ public class OAuth2Attribute {
     // get() 메서드를 두번 이용해ㅐ 사용자 정보를 꺼내야함
     private static OAuth2Attribute ofKakao(String provider, String attributeKey, Map<String, Object> attributes) {
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-        Map<String, Object> kakaoProfile = (Map<String, Object>) kakaoAccount.get("profile");
+        Map<String, Object> kakaoProfile = kakaoAccount == null ? null : (Map<String, Object>) kakaoAccount.get("profile");
 
         return OAuth2Attribute.builder()
-                .email((String) kakaoAccount.get("email"))
+                .email(kakaoAccount == null ? null : (String) kakaoAccount.get("email"))
+                .name(kakaoProfile == null ? null : (String) kakaoProfile.get("nickname"))
                 .provider(provider)
                 .attributes(kakaoAccount)
                 .attributeKey(attributeKey)
@@ -64,6 +66,7 @@ public class OAuth2Attribute {
 
         return OAuth2Attribute.builder()
                 .email((String) response.get("email"))
+                .name((String) response.get("name"))
                 .attributes(response)
                 .provider(provider)
                 .attributeKey(attributeKey)
@@ -76,6 +79,7 @@ public class OAuth2Attribute {
         map.put("key", attributeKey);
         map.put("email", email);
         map.put("provider", provider);
+        map.put("name", name);
 
         return map;
     }

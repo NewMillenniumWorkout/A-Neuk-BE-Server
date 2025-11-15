@@ -14,9 +14,12 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.Optional;
+
 
 @Slf4j
 @Component
@@ -62,12 +65,21 @@ public class MyAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucce
                 .orElseThrow(IllegalAccessError::new)
                 .getAuthority();
 
+        if (email == null) {
+            log.error("OAuth2 authentication succeeded but email was null. Aborting redirect.");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "OAuth2 provider did not return an email address.");
+            return;
+        }
+
         // 회원 존재 여부 확인 및 저장
         boolean isExist = oAuth2User.getAttribute("exist");
         if (!isExist) {
             Member newMember = new Member();
             newMember.setEmail(email);
-            newMember.setName(oAuth2User.getName());
+            String nickname = Optional.ofNullable(oAuth2User.<String>getAttribute("name"))
+                    .filter(StringUtils::hasText)
+                    .orElse(email);
+            newMember.setName(nickname);
             newMember.setUserRole(role);
             memberRepository.save(newMember);
         }

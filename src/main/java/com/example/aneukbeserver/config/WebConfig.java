@@ -13,7 +13,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:3000",
                         "http://43.203.232.54:2518",
                         "https://aneuk-api.dev-lr.com",
-                        "https://aneuk.dev-lr.com"
+                        "https://aneuk.dev-lr.com",
+                        "https://cocoon.dodae.me"
                 )
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowCredentials(true)

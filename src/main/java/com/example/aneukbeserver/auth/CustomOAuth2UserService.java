@@ -5,14 +5,15 @@ import com.example.aneukbeserver.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.Map;
@@ -45,6 +46,18 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         // 사용자 email 또는 id 가져오기
         String email = (String) memberAttribute.get("email");
+
+        if (!StringUtils.hasText(email)) {
+            log.warn("{} OAuth2 login attempt is missing an email address.", registrationId);
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error(
+                            "missing_email",
+                            "카카오 계정에서 이메일 제공에 동의해야 로그인할 수 있습니다.",
+                            null
+                    ),
+                    "OAuth2 provider did not return an email address"
+            );
+        }
 
         // 이메일로 가입된 회원인지 조회
         Optional<Member> findMember = memberService.findByEmail(email);

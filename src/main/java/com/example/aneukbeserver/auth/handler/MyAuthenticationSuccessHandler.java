@@ -70,11 +70,12 @@ public class MyAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucce
         }
 
         // 회원 존재 여부 확인 및 저장
-        boolean isExist = oAuth2User.getAttribute("exist");
+        boolean isExist = Boolean.TRUE.equals(oAuth2User.<Boolean>getAttribute("exist"));
         if (!isExist) {
             Member newMember = new Member();
             newMember.setEmail(email);
-            String nickname = Optional.ofNullable(oAuth2User.getAttribute("name")).orElse(email);
+            String nickname = Optional.ofNullable(oAuth2User.<String>getAttribute("name"))
+                    .orElse(email);
             newMember.setName(nickname);
             newMember.setUserRole(role);
             memberRepository.save(newMember);

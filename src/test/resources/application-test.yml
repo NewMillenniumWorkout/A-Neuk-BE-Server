@@ -1,0 +1,67 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  application:
+    name: A-Neuk-BE-Server
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  redis:
+    host: localhost
+    port: 6379
+    password:
+  jwt:
+    secret: test-secret
+    success-redirect:
+      google: http://localhost:3000/auth/google
+      kakao: http://localhost:3000/auth/kakao
+      naver: http://localhost:3000/auth/naver
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-google-client
+            client-secret: test-google-secret
+            redirect-uri: http://localhost:7010/login/oauth2/code/google
+            authorization-grant-type: authorization_code
+            scope: email, profile
+          kakao:
+            client-id: test-kakao-client
+            client-secret: test-kakao-secret
+            redirect-uri: http://localhost:7010/login/oauth2/code/kakao
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            scope: profile_nickname, account_email
+            client-name: Kakao
+          naver:
+            client-id: test-naver-client
+            client-secret: test-naver-secret
+            redirect-uri: http://localhost:7010/login/oauth2/code/naver
+            authorization-grant-type: authorization_code
+            scope: name, email
+            client-name: Naver
+  ai:
+    url: http://localhost:8080/ai
+
+cloud:
+  aws:
+    s3:
+      bucket: test-bucket
+    credentials:
+      access-key: test-access-key
+      secret-key: test-secret-key
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false

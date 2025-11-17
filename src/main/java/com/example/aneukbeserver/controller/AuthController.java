@@ -1,9 +1,13 @@
 package com.example.aneukbeserver.controller;
 
+import com.example.aneukbeserver.auth.dto.GeneratedToken;
+import com.example.aneukbeserver.auth.dto.GuestLoginResponseDto;
 import com.example.aneukbeserver.auth.dto.StatusResponseDto;
 import com.example.aneukbeserver.auth.jwt.JwtUtil;
+import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.domain.refreshToken.RefreshToken;
 import com.example.aneukbeserver.domain.refreshToken.RefreshTokenRepository;
+import com.example.aneukbeserver.service.MemberService;
 import com.example.aneukbeserver.service.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,6 +36,29 @@ public class AuthController {
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenService refreshTokenService;
     private final JwtUtil jwtUtil;
+    private final MemberService memberService;
+
+    @Operation(summary = "게스트 로그인", description = "게스트 전용 임시 계정을 생성하고 JWT 토큰을 발급합니다")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 에러, 관리자에게 문의 바랍니다.")
+    })
+    @PostMapping("/guest")
+    public ResponseEntity<StatusResponseDto> guestLogin() {
+        Member guestMember = memberService.createGuestMember();
+        GeneratedToken token = jwtUtil.generateToken(guestMember.getEmail(), guestMember.getUserRole());
+
+        GuestLoginResponseDto response = GuestLoginResponseDto.builder()
+                .memberId(guestMember.getId())
+                .email(guestMember.getEmail())
+                .name(guestMember.getName())
+                .role(guestMember.getUserRole())
+                .accessToken(token.getAccessToken())
+                .refreshToken(token.getRefreshToken())
+                .build();
+
+        return ResponseEntity.ok(addStatus(200, response));
+    }
 
     @Operation(summary = "토큰 로그아웃", description = "accessToken을 기반으로 refreshToken을 삭제합니다")
     @ApiResponses(value = {

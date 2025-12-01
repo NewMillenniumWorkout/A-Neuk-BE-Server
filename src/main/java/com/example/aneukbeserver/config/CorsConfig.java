@@ -15,7 +15,9 @@ public class CorsConfig {
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("http://43.203.232.54:2518");
         configuration.addAllowedOrigin("https://aneuk-api.dev-lr.com");
+        configuration.addAllowedOrigin("https://aneuk-api.dodae.me");
         configuration.addAllowedOrigin("https://aneuk.dev-lr.com");
+        configuration.addAllowedOrigin("https://aneuk.dodae.me");
         configuration.addAllowedOrigin("https://cocoon.dodae.me");
         configuration.addAllowedMethod("GET");
         configuration.addAllowedMethod("POST");

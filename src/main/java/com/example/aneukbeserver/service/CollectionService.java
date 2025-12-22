@@ -12,10 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,20 +77,54 @@ public class CollectionService {
     }
 
     public void saveEmotionCollection(List<Emotion> emotionList, Member member) {
+        if (emotionList == null || emotionList.isEmpty()) {
+            return;
+        }
+
+        Map<Long, Emotion> uniqueEmotions = new HashMap<>();
+        Map<Long, Long> emotionCounts = new HashMap<>();
         for (Emotion emotion : emotionList) {
-            Optional<Collection> existingCollection = collectionRepository.findByMemberAndEmotion(member, emotion);
-            if (existingCollection.isPresent()) {
-                Collection collection = existingCollection.get();
-                collection.setUsageCount(collection.getUsageCount() + 1);
-                collectionRepository.save(collection);
+            if (emotion == null || emotion.getId() == null) {
+                continue;
             }
-            else {
-                Collection newCollection = new Collection();
-                newCollection.setMember(member);
-                newCollection.setEmotion(emotion);
-                newCollection.setUsageCount(1L);
-                collectionRepository.save(newCollection);
+            uniqueEmotions.putIfAbsent(emotion.getId(), emotion);
+            emotionCounts.put(emotion.getId(), emotionCounts.getOrDefault(emotion.getId(), 0L) + 1);
+        }
+
+        if (uniqueEmotions.isEmpty()) {
+            return;
+        }
+
+        List<Collection> existingCollections = collectionRepository.findByMemberAndEmotionIn(
+                member,
+                new ArrayList<>(uniqueEmotions.values())
+        );
+        Map<Long, Collection> existingByEmotionId = existingCollections.stream()
+                .collect(Collectors.toMap(collection -> collection.getEmotion().getId(), collection -> collection));
+
+        List<Collection> toSave = new ArrayList<>();
+        for (Map.Entry<Long, Long> entry : emotionCounts.entrySet()) {
+            Long emotionId = entry.getKey();
+            Long count = entry.getValue();
+            Emotion emotion = uniqueEmotions.get(emotionId);
+            if (emotion == null) {
+                continue;
             }
+
+            Collection collection = existingByEmotionId.get(emotionId);
+            if (collection != null) {
+                collection.setUsageCount(collection.getUsageCount() + count);
+            } else {
+                collection = new Collection();
+                collection.setMember(member);
+                collection.setEmotion(emotion);
+                collection.setUsageCount(count);
+            }
+            toSave.add(collection);
+        }
+
+        if (!toSave.isEmpty()) {
+            collectionRepository.saveAll(toSave);
         }
 
 

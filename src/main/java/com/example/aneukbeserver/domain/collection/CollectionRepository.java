@@ -14,5 +14,8 @@ public interface CollectionRepository extends JpaRepository<Collection, Long> {
     @Query("SELECT c FROM Collection c JOIN FETCH c.emotion WHERE c.member = :member")
     List<Collection> findByMember(@Param("member") Member member);
 
+    @Query("SELECT c FROM Collection c JOIN FETCH c.emotion WHERE c.member = :member AND c.emotion IN :emotions")
+    List<Collection> findByMemberAndEmotionIn(@Param("member") Member member, @Param("emotions") List<Emotion> emotions);
+
     Optional<Collection> findByMemberAndEmotion(Member member, Emotion emotion);
 }

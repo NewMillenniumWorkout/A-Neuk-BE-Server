@@ -24,7 +24,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -53,7 +52,7 @@ public class ChatController {
     private DiaryService diaryService;
 
     @Autowired
-    private RestTemplate restTemplate;
+    private AiClientService aiClientService;
 
     @Autowired
     private S3Service s3Service;
@@ -146,7 +145,7 @@ public class ChatController {
 
             String aiChatUrl = aiUrl + "/ai/chat/";
 
-            ResponseEntity<ChatAiResponseDTO> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, ChatAiResponseDTO.class);
+            ResponseEntity<ChatAiResponseDTO> aiResponse = aiClientService.postWithRetry(aiChatUrl, entity, ChatAiResponseDTO.class);
 
             chatMessagesService.saveAssistantChat(chat.get(), aiResponse.getBody());
 

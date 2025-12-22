@@ -2,12 +2,10 @@ package com.example.aneukbeserver.service;
 
 import com.example.aneukbeserver.domain.collection.Collection;
 import com.example.aneukbeserver.domain.collection.CollectionRepository;
-import com.example.aneukbeserver.domain.diaryParagraph.DiaryParagraph;
 import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.emotion.EmotionCategory;
 import com.example.aneukbeserver.domain.emotion.EmotionRepository;
 import com.example.aneukbeserver.domain.member.Member;
-import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,6 +44,9 @@ public class CollectionService {
         statistics.put("usedEmotionCount", usedEmotions);
         statistics.put("totalEmotionCount", totalEmotions);
 
+        Map<EmotionCategory, Long> totalByCategory = emotionRepository.countByCategoryGrouped().stream()
+                .collect(Collectors.toMap(EmotionRepository.CategoryCount::getCategory, EmotionRepository.CategoryCount::getCount));
+
         // 카테고리별
         Map<String, Long> categoryUsageStats = collections.stream()
                 .collect(Collectors.groupingBy(
@@ -64,7 +65,7 @@ public class CollectionService {
             long count = entry.getValue();
 
             EmotionCategory categoryEnum = EmotionCategory.valueOf(category);
-            long totalInCategory = emotionRepository.countByCategory(categoryEnum);
+            long totalInCategory = totalByCategory.getOrDefault(categoryEnum, 0L);
 
             categoryStats.put(category,  Map.of(
                     "usedCount", count,

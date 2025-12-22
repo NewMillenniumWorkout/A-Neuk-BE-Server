@@ -30,7 +30,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -63,7 +62,7 @@ public class DiaryController {
     private EmotionService emotionService;
 
     @Autowired
-    private RestTemplate restTemplate;
+    private AiClientService aiClientService;
 
     @Autowired
     private SelectedEmotionService selectedEmotionService;
@@ -116,7 +115,7 @@ public class DiaryController {
 
             String aiChatUrl = aiUrl + "/ai/diary/";
 
-            ResponseEntity<DiaryAiResponseDTO> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, DiaryAiResponseDTO.class);
+            ResponseEntity<DiaryAiResponseDTO> aiResponse = aiClientService.postWithRetry(aiChatUrl, entity, DiaryAiResponseDTO.class);
 
             log.info(String.valueOf(aiResponse.getBody()));
             diaryService.saveDiary(chat.get(), member);
@@ -243,7 +242,7 @@ public class DiaryController {
 
             String aiChatUrl = aiUrl + "/ai/remake/";
 
-            ResponseEntity<Map> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, Map.class);
+            ResponseEntity<Map> aiResponse = aiClientService.postWithRetry(aiChatUrl, entity, Map.class);
             log.info("AI response: {}", aiResponse.getBody());
 
             diaryParagraphService.updateDiaryParagraph(diaryParagraph.get(), aiResponse.getBody().get("remade_content").toString());

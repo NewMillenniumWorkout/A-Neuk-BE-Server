@@ -252,8 +252,8 @@ public class DiaryController {
 
             String aiChatUrl = aiUrl + "/ai/remake/";
 
-            log.info(String.valueOf(restTemplate.postForEntity(aiChatUrl, entity, Map.class)));
             ResponseEntity<Map> aiResponse = restTemplate.postForEntity(aiChatUrl, entity, Map.class);
+            log.info("AI response: {}", aiResponse.getBody());
 
             diaryParagraphService.updateDiaryParagraph(diaryParagraph.get(), aiResponse.getBody().get("remade_content").toString());
 

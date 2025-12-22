@@ -1,37 +1,27 @@
 package com.example.aneukbeserver.controller;
 
 import com.example.aneukbeserver.auth.dto.StatusResponseDto;
-import com.example.aneukbeserver.auth.jwt.JwtUtil;
+import com.example.aneukbeserver.auth.dto.SecurityUserDto;
 import com.example.aneukbeserver.domain.chat.Chat;
-import com.example.aneukbeserver.domain.chatMessages.ChatMessageDTO;
-import com.example.aneukbeserver.domain.chatMessages.ChatMessages;
 import com.example.aneukbeserver.domain.diary.Diary;
-import com.example.aneukbeserver.domain.diary.DiaryAiResponseDTO;
 import com.example.aneukbeserver.domain.diary.DiaryDTO;
 import com.example.aneukbeserver.domain.diary.MonthDiaryDTO;
-import com.example.aneukbeserver.domain.diaryParagraph.SelectParagraphDTO;
 import com.example.aneukbeserver.domain.emotion.Emotion;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.domain.selectedEmotion.SelectedEmotion;
 import com.example.aneukbeserver.service.ChatService;
 import com.example.aneukbeserver.service.DiaryService;
 import com.example.aneukbeserver.service.MemberService;
-import com.example.aneukbeserver.service.S3Service;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,9 +35,6 @@ import static com.example.aneukbeserver.auth.dto.StatusResponseDto.addStatus;
 @RequestMapping("/get-diary")
 @Tag(name = "Get Diary Controller", description = "일기를 조건에 따라 가져오는 컨트롤러")
 public class GetDiaryController {
-    @Autowired
-    private JwtUtil jwtUtil;
-
     @Autowired
     private MemberService memberService;
 
@@ -66,14 +53,12 @@ public class GetDiaryController {
 
     })
     @GetMapping("/all")
-    public ResponseEntity<StatusResponseDto> getAllDiaries(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken) {
-        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
-        Optional<Member> member = memberService.findByEmail(userEmail);
-
-        if (member.isEmpty())
+    public ResponseEntity<StatusResponseDto> getAllDiaries(@AuthenticationPrincipal SecurityUserDto user) {
+        if (user == null)
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
 
-        List<DiaryDTO> diaries = diaryService.getAllDiary(member.get());
+        Member member = memberService.getReferenceById(user.getId());
+        List<DiaryDTO> diaries = diaryService.getAllDiary(member);
 
         if (diaries == null)
             return ResponseEntity.badRequest().body(addStatus(401, "사용자의 일기가 존재하지 않습니다."));
@@ -93,14 +78,12 @@ public class GetDiaryController {
 
     })
     @GetMapping("/month")
-    public ResponseEntity<StatusResponseDto> getMonthDiaries(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam String month) {
-        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
-        Optional<Member> member = memberService.findByEmail(userEmail);
-
-        if (member.isEmpty())
+    public ResponseEntity<StatusResponseDto> getMonthDiaries(@AuthenticationPrincipal SecurityUserDto user, @RequestParam String month) {
+        if (user == null)
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
 
-        List<MonthDiaryDTO> monthDiaries = diaryService.getMonthDiary(member.get(), month);
+        Member member = memberService.getReferenceById(user.getId());
+        List<MonthDiaryDTO> monthDiaries = diaryService.getMonthDiary(member, month);
 
         if (monthDiaries == null)
             return ResponseEntity.badRequest().body(addStatus(401, "사용자의 일기가 존재하지 않습니다."));
@@ -120,14 +103,12 @@ public class GetDiaryController {
 
     })
     @GetMapping("/day")
-    public ResponseEntity<StatusResponseDto> getDateDiary(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam String date) {
-        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
-        Optional<Member> member = memberService.findByEmail(userEmail);
-
-        if (member.isEmpty())
+    public ResponseEntity<StatusResponseDto> getDateDiary(@AuthenticationPrincipal SecurityUserDto user, @RequestParam String date) {
+        if (user == null)
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
 
-       DiaryDTO diaryDTO = diaryService.getDateDiary(member.get(), date);
+       Member member = memberService.getReferenceById(user.getId());
+       DiaryDTO diaryDTO = diaryService.getDateDiary(member, date);
 
         if (diaryDTO == null)
             return ResponseEntity.badRequest().body(addStatus(401, "일기가 존재하지 않습니다."));
@@ -145,11 +126,8 @@ public class GetDiaryController {
 
     })
     @GetMapping("/chat-id")
-    public ResponseEntity<StatusResponseDto> getDiaryByChatId(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam Long chatId) {
-        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
-        Optional<Member> member = memberService.findByEmail(userEmail);
-
-        if (member.isEmpty())
+    public ResponseEntity<StatusResponseDto> getDiaryByChatId(@AuthenticationPrincipal SecurityUserDto user, @RequestParam Long chatId) {
+        if (user == null)
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
 
         Optional<Chat> chat = chatService.getChatById(chatId);
@@ -181,11 +159,8 @@ public class GetDiaryController {
 
     })
     @GetMapping("/diary-id")
-    public ResponseEntity<StatusResponseDto> getDiaryByDiaryId(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam Long diaryId) {
-        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
-        Optional<Member> member = memberService.findByEmail(userEmail);
-
-        if (member.isEmpty())
+    public ResponseEntity<StatusResponseDto> getDiaryByDiaryId(@AuthenticationPrincipal SecurityUserDto user, @RequestParam Long diaryId) {
+        if (user == null)
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
 
         Optional<Diary> diary = diaryService.getDiary(diaryId);

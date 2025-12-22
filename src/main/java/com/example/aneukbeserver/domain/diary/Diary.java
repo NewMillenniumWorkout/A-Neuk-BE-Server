@@ -26,7 +26,7 @@ public class Diary {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @OneToOne(mappedBy = "diary")
+    @OneToOne(mappedBy = "diary", fetch = FetchType.LAZY)
     private Chat chat;
 
     @CreatedDate

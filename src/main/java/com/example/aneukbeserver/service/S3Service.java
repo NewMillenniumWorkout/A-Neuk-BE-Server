@@ -7,7 +7,6 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.example.aneukbeserver.domain.diary.Diary;
-import com.example.aneukbeserver.domain.member.Member;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,8 +85,8 @@ public class S3Service {
     }
 
 
-    public String getImage(Member member, Diary diary) {
-        String key = member.getEmail() + "/" + diary.getId();
+    public String getImage(String memberEmail, Diary diary) {
+        String key = memberEmail + "/" + diary.getId();
         URL url = amazonS3.getUrl(bucket,  key);
         String urlText = ""+ url;
 

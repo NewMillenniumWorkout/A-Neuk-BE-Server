@@ -1,7 +1,7 @@
 package com.example.aneukbeserver.controller;
 
 import com.example.aneukbeserver.auth.dto.StatusResponseDto;
-import com.example.aneukbeserver.auth.jwt.JwtUtil;
+import com.example.aneukbeserver.auth.dto.SecurityUserDto;
 import com.example.aneukbeserver.domain.chat.Chat;
 import com.example.aneukbeserver.domain.chat.ChatTotalDTO;
 import com.example.aneukbeserver.domain.chatMessages.ChatAiResponseDTO;
@@ -12,7 +12,6 @@ import com.example.aneukbeserver.domain.diary.Diary;
 import com.example.aneukbeserver.domain.member.Member;
 import com.example.aneukbeserver.service.*;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +22,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,9 +40,6 @@ import static com.example.aneukbeserver.auth.dto.StatusResponseDto.addStatus;
 @RequestMapping("/chat")
 @Tag(name = "Chat Controller", description = "챗봇과의 채팅에 필요한 api")
 public class ChatController {
-    @Autowired
-    private JwtUtil jwtUtil;
-
     @Autowired
     private MemberService memberService;
 
@@ -71,15 +68,12 @@ public class ChatController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "사용자가 존재하지 않습니다.")
     })
     @GetMapping("/init-message")
-    public ResponseEntity<StatusResponseDto> sendInitMessage(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken) {
-        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
-        Optional<Member> member = memberService.findByEmail(userEmail);
-
-        if (member.isEmpty())
+    public ResponseEntity<StatusResponseDto> sendInitMessage(@AuthenticationPrincipal SecurityUserDto user) {
+        if (user == null)
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
 
-
-        InitMessageDTO initMessageDTO = chatService.getInitMessage(member.get());
+        Member member = memberService.getReferenceById(user.getId());
+        InitMessageDTO initMessageDTO = chatService.getInitMessage(member);
         return ResponseEntity.ok(addStatus(200, initMessageDTO));
 
     }
@@ -92,11 +86,8 @@ public class ChatController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "채팅이 존재하지 않습니다.")
     })
     @GetMapping("/total")
-    public ResponseEntity<StatusResponseDto> getTotalChat(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam("chatId") Long chatId) {
-        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
-        Optional<Member> member = memberService.findByEmail(userEmail);
-
-        if (member.isEmpty())
+    public ResponseEntity<StatusResponseDto> getTotalChat(@AuthenticationPrincipal SecurityUserDto user, @RequestParam("chatId") Long chatId) {
+        if (user == null)
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
 
         List<ChatTotalDTO> chatTotalDTO = chatService.getTotalChat(chatId);
@@ -116,11 +107,8 @@ public class ChatController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "chatId와 content가 올바르지 않습니다")
     })
     @PostMapping("/submit-message")
-    public ResponseEntity<StatusResponseDto> submitMessage(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestBody Map<String, String> request) {
-        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
-        Optional<Member> member = memberService.findByEmail(userEmail);
-
-        if (member.isEmpty())
+    public ResponseEntity<StatusResponseDto> submitMessage(@AuthenticationPrincipal SecurityUserDto user, @RequestBody Map<String, String> request) {
+        if (user == null)
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
 
         Long chatId = Long.valueOf(request.get("chat_id"));
@@ -177,13 +165,11 @@ public class ChatController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "일기가 존재하지 않습니다.")
     })
     @PostMapping(value = "/submit-image", consumes = {"multipart/form-data"})
-    public ResponseEntity<StatusResponseDto> submitImage(@Parameter(hidden = true) @RequestHeader("Authorization") final String accessToken, @RequestParam("chat_id") Long chatId, @RequestParam("image") MultipartFile image) {
-        String userEmail = jwtUtil.getEmail(accessToken.substring(7));
-        Optional<Member> member = memberService.findByEmail(userEmail);
-
-        if (member.isEmpty())
+    public ResponseEntity<StatusResponseDto> submitImage(@AuthenticationPrincipal SecurityUserDto user, @RequestParam("chat_id") Long chatId, @RequestParam("image") MultipartFile image) {
+        if (user == null)
             return ResponseEntity.badRequest().body(addStatus(400, "사용자가 존재하지 않습니다."));
 
+        String userEmail = user.getEmail();
         Diary diary = diaryService.getByChatId(chatId);
 
         if (diary == null)
@@ -194,7 +180,7 @@ public class ChatController {
             try {
                 fileName = s3Service.upload(image, userEmail + "/" + diary.getId()); // images 디렉토리에 저장
 //                System.out.println("fileName = " + fileName);
-                String imageUrl = s3Service.getImage(member.get(), diary);
+                String imageUrl = s3Service.getImage(userEmail, diary);
                 diaryService.saveImage(diary, imageUrl);
             } catch (IOException e) {
                 return ResponseEntity.badRequest().body(addStatus(500, "Image Upload Failed : " + e.getMessage()));

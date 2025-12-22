@@ -22,6 +22,10 @@ public class MemberService {
         return memberRepository.findByEmail(email);
     }
 
+    public Member getReferenceById(Long id) {
+        return memberRepository.getReferenceById(id);
+    }
+
     @Transactional
     public Member createGuestMember() {
         String guestCode;
